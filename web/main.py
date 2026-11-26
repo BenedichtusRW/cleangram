@@ -27,6 +27,12 @@ from cleaner_service import (  # noqa: E402
     start_login,
     verify_and_scan,
 )
+from stats_service import (  # noqa: E402
+    get_stats,
+    record_cleanup,
+    record_scan_session,
+    record_visit,
+)
 
 app = FastAPI(
     title="CleanGram Web",
@@ -103,6 +109,18 @@ async def health_check():
     return {"status": "ok", "service": "cleangram-web"}
 
 
+@app.get("/api/stats")
+async def api_stats():
+    """Mengembalikan statistik agregat penggunaan CleanGram secara anonim."""
+    return JSONResponse(await get_stats())
+
+
+@app.post("/api/stats/visit")
+async def api_stats_visit():
+    """Mencatat kunjungan unik dan mengembalikan statistik terbaru."""
+    return JSONResponse(await record_visit())
+
+
 @app.post("/api/send-code")
 async def api_send_code(payload: SendCodeRequest):
     """Mengirim kode OTP login resmi ke Telegram pengguna."""
@@ -129,6 +147,7 @@ async def api_verify_scan(payload: VerifyScanRequest):
             password=payload.password,
             whitelist_raw=payload.whitelist,
         )
+        await record_scan_session()
         return JSONResponse(result)
     except Require2FAError as exc:
         return JSONResponse({"status": "2fa_required", "flow_token": exc.flow_token})
@@ -151,6 +170,9 @@ async def api_clean_batch(payload: CleanBatchRequest):
             is_last_batch=payload.is_last_batch,
             auto_logout=payload.auto_logout,
         )
+        ok_count = sum(1 for r in result.get("results", []) if r.get("status") == "ok")
+        completed = bool(payload.is_last_batch and not result.get("floodwait_seconds"))
+        await record_cleanup(ok_count=ok_count, completed=completed)
         return JSONResponse(result)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -178,9 +200,10 @@ async def api_qr_start(payload: QrStartRequest):
 async def api_qr_check(payload: QrCheckRequest):
     """Mengecek apakah QR sudah di-scan pengguna; jika sukses langsung pindai akun."""
     try:
-        return JSONResponse(
-            await qr_check(flow_token=payload.flow_token, whitelist_raw=payload.whitelist)
-        )
+        result = await qr_check(flow_token=payload.flow_token, whitelist_raw=payload.whitelist)
+        if result.get("status") == "scanned":
+            await record_scan_session()
+        return JSONResponse(result)
     except Require2FAError as exc:
         return JSONResponse({"status": "2fa_required", "flow_token": exc.flow_token})
     except ValueError as exc:

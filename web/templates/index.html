@@ -28,6 +28,10 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -442,6 +446,31 @@
       </div>
     </section>
 
+    <!-- Live Community Counter Card (Visible on Step 1 when Redis is configured) -->
+    <section id="liveStatsCard" class="hidden rounded-2xl bg-[#111114] border border-zinc-800 p-4 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 text-xs font-semibold text-white">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Statistik Penggunaan Nyata</span>
+        </div>
+        <span id="statRecentBadge" class="hidden text-[10.5px] font-mono text-zinc-400 bg-[#09090B] border border-zinc-800 rounded-md px-2 py-0.5 truncate max-w-[220px]"></span>
+      </div>
+      <div class="grid grid-cols-3 gap-2">
+        <div class="rounded-xl bg-[#09090B] border border-zinc-800 p-2.5 text-center">
+          <div id="statVisits" class="text-base sm:text-lg font-bold font-mono text-white">0</div>
+          <div class="text-[10px] text-zinc-500">Kunjungan</div>
+        </div>
+        <div class="rounded-xl bg-[#09090B] border border-zinc-800 p-2.5 text-center">
+          <div id="statSessions" class="text-base sm:text-lg font-bold font-mono text-[#24A1DE]">0</div>
+          <div class="text-[10px] text-zinc-500">Sesi Pindai</div>
+        </div>
+        <div class="rounded-xl bg-[#09090B] border border-zinc-800 p-2.5 text-center">
+          <div id="statCleaned" class="text-base sm:text-lg font-bold font-mono text-emerald-400">0</div>
+          <div class="text-[10px] text-zinc-500">Grup/Bot Bersih</div>
+        </div>
+      </div>
+    </section>
+
     <!-- Download Native Apps & CLI Card (Visible on Step 1) -->
     <section id="platformCards" class="rounded-2xl bg-[#111114] border border-zinc-800 p-4 sm:p-5 space-y-3">
       <div class="flex items-center justify-between gap-2">
@@ -498,6 +527,13 @@
     </div>
   </footer>
 
+  <!-- Subtle Anonymous Recent Activity Toast (Real Redis Data Only) -->
+  <div id="activityToast" class="hidden fixed bottom-4 right-4 z-50 max-w-xs rounded-xl bg-[#111114]/95 backdrop-blur border border-zinc-700/80 shadow-2xl px-3.5 py-2.5 flex items-center gap-2.5 transition-opacity duration-300">
+    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
+    <div class="text-[11px] text-zinc-200 leading-snug" id="activityToastText"></div>
+    <button type="button" onclick="dismissActivityToast()" class="text-zinc-500 hover:text-white shrink-0 text-xs" title="Tutup">✕</button>
+  </div>
+
   <script>
     lucide.createIcons();
 
@@ -507,6 +543,7 @@
     let scannedProtected = [];
     let deferredPrompt = null;
     let isCleaningActive = false;
+    let hasLiveStats = false;
 
     window.addEventListener('beforeunload', (e) => {
       if (isCleaningActive) {
@@ -567,6 +604,8 @@
 
       const pCards = document.getElementById('platformCards');
       if (pCards) pCards.classList.toggle('hidden', stepNum !== 1);
+      const statsCard = document.getElementById('liveStatsCard');
+      if (statsCard) statsCard.classList.toggle('hidden', !hasLiveStats || stepNum !== 1);
     }
 
     let qrPollTimer = null;
@@ -1028,6 +1067,7 @@
         document.getElementById('doneSummary').classList.remove('hidden');
         currentFlowToken = null;
         lucide.createIcons();
+        refreshLiveStatsOnly();
       } catch (err) {
         showError(err.message);
         appendLog(`❌ Koneksi terputus: ${err.message}`, 'text-red-400');
@@ -1035,6 +1075,78 @@
         isCleaningActive = false;
       }
     }
+
+    let activityToastTimer = null;
+
+    function formatTimeAgo(unixSec) {
+      if (!unixSec) return 'baru saja';
+      const diff = Math.max(Math.floor(Date.now() / 1000) - Number(unixSec), 0);
+      if (diff < 60) return 'baru saja';
+      if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
+      if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
+      return `${Math.floor(diff / 86400)} hari lalu`;
+    }
+
+    function dismissActivityToast() {
+      const toast = document.getElementById('activityToast');
+      if (toast) toast.classList.add('hidden');
+      if (activityToastTimer) {
+        clearTimeout(activityToastTimer);
+        activityToastTimer = null;
+      }
+    }
+
+    function applyLiveStats(data, allowToast) {
+      if (!data || !data.configured) return;
+      hasLiveStats = true;
+      document.getElementById('statVisits').textContent = (data.visits || 0).toLocaleString('id-ID');
+      document.getElementById('statSessions').textContent = (data.sessions || 0).toLocaleString('id-ID');
+      document.getElementById('statCleaned').textContent = (data.cleaned_items || 0).toLocaleString('id-ID');
+
+      const step1Visible = !document.getElementById('step1Card').classList.contains('hidden');
+      const card = document.getElementById('liveStatsCard');
+      if (card && step1Visible) card.classList.remove('hidden');
+
+      if (data.last_activity && data.last_activity.count > 0) {
+        const ago = formatTimeAgo(data.last_activity.ts);
+        const badge = document.getElementById('statRecentBadge');
+        if (badge) {
+          badge.textContent = `Terakhir: ${data.last_activity.count} item (${ago})`;
+          badge.classList.remove('hidden');
+        }
+        if (allowToast && !sessionStorage.getItem('cg_toast_shown')) {
+          sessionStorage.setItem('cg_toast_shown', '1');
+          const toast = document.getElementById('activityToast');
+          const txt = document.getElementById('activityToastText');
+          if (toast && txt) {
+            txt.textContent = `Seseorang baru membersihkan ${data.last_activity.count} target spam (${ago})`;
+            toast.classList.remove('hidden');
+            activityToastTimer = setTimeout(dismissActivityToast, 5500);
+          }
+        }
+      }
+    }
+
+    async function refreshLiveStatsOnly() {
+      try {
+        const res = await fetch('/api/stats');
+        if (res.ok) applyLiveStats(await res.json(), false);
+      } catch (_) {}
+    }
+
+    async function loadLiveStats() {
+      try {
+        const alreadyVisited = Boolean(sessionStorage.getItem('cg_visited'));
+        const res = alreadyVisited
+          ? await fetch('/api/stats')
+          : await fetch('/api/stats/visit', { method: 'POST' });
+        if (!res.ok) return;
+        if (!alreadyVisited) sessionStorage.setItem('cg_visited', '1');
+        applyLiveStats(await res.json(), true);
+      } catch (_) {}
+    }
+
+    loadLiveStats();
   </script>
 </body>
 </html>

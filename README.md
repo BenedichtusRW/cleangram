@@ -1,49 +1,65 @@
-# 🧹 CleanGram (Pembersih Massal Grup & Spam Telegram)
+<p align="center">
+  <img src="web/static/logo.png" alt="CleanGram Logo" width="120" style="border-radius: 24px;" />
+</p>
 
-**CleanGram** adalah aplikasi otomatis untuk **keluar dari puluhan/ratusan grup spam, saluran lendir/judi, dan bot spam** sekali klik, dengan **perlindungan otomatis (whitelist protection)** untuk kontak pribadi dan grup penting.
+<h1 align="center">🧹 CleanGram</h1>
+
+<p align="center">
+  <strong>Pembersih Massal Grup Spam, Saluran Tak Dikenal, & Bot Spam Telegram</strong><br/>
+  Tersedia dalam versi <strong>Website & Mobile PWA (FastAPI)</strong> serta <strong>Script CLI Python</strong> dengan perlindungan kontak otomatis.
+</p>
 
 ---
 
 ## ✨ Fitur Unggulan
-1. 🚪 **Keluar Massal Otomatis:** Keluar dari semua grup/saluran spam dalam hitungan detik.
-2. 🗑️ **Hapus Riwayat Chat Total:** Menghapus riwayat percakapan spam sampai bersih tuntas.
-3. 🛡️ **Proteksi Kontak HP (Anti-Hapus):** Semua nomor telepon yang tersimpan di kontak HP Anda **100% AMAN**.
-4. 📝 **Custom Whitelist Dinamis:** Anda bisa menentukan kata kunci grup penting (misal: `kampus`, `kantor`, `keluarga`) agar tidak ikut terhapus.
-5. ⛔ **Tanpa Pemblokiran:** Hanya keluar dan hapus chat, tidak memblokir akun.
+1. 🚪 **Keluar Massal Otomatis:** Keluar dari puluhan/ratusan grup & saluran spam dalam hitungan detik.
+2. 🗑️ **Hapus Riwayat Chat Total:** Menghapus riwayat percakapan spam (`revoke=True`) sampai bersih tuntas.
+3. 🛡️ **Proteksi Kontak HP (Anti-Hapus):** Semua nomor yang tersimpan di kontak HP & chat pribadi manusia **100% AMAN**.
+4. 📝 **Custom Whitelist Dinamis:** Lindungi grup penting Anda menggunakan kata kunci khusus (misal: `kampus`, `kantor`, `keluarga`).
+5. 🔒 **Zero-Storage Privacy (Versi Web):** Berjalan sementara di RAM, tanpa database, dan otomatis **Logout permanen** dari *Telegram Devices* setelah selesai.
+6. ⛔ **Tanpa Pemblokiran:** Hanya keluar dan hapus chat, tidak memblokir akun.
 
 ---
 
-## 🛠️ Persyaratan Awal (Untuk Orang Awam)
-1. **Python 3** (di Laptop atau HP Android lewat aplikasi *Pydroid 3* / *Termux*).
-2. **Library Telethon:**
-   Buka Terminal / Command Prompt (CMD), lalu ketik:
+## 🌐 Opsi 1: Menjalankan Website & Mobile PWA (Folder `web/`)
+
+Versi Web dibangun dengan **FastAPI + Async Telethon + Tailwind CSS** dan mendukung **PWA** (*Add to Home Screen* di Android/iOS).
+
+### Jalankan secara Lokal:
+```bash
+cd web
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+Buka browser lalu akses: `http://127.0.0.1:8000`
+
+### Deploy Gratis ke Render.com:
+Repository ini sudah dilengkapi file [`render.yaml`](render.yaml).
+1. Hubungkan repository ini di dashboard **Render.com** (Blueprint / Web Service).
+2. Atur **Root Directory** ke `web`.
+3. Tambahkan Environment Variables di Render:
+   * `TELEGRAM_API_ID`
+   * `TELEGRAM_API_HASH`
+
+---
+
+## ⚙️ Opsi 2: Cara Manual via Terminal / CLI (`clean_telegram_groups.py`)
+
+### Persyaratan:
+1. **Python 3** (Laptop atau HP Android via *Pydroid 3* / *Termux*).
+2. Install library Telethon:
    ```bash
    pip install telethon
    ```
-3. **API ID & API HASH Telegram (Gratis dari Telegram):**
-   * Buka browser, kunjungi: [https://my.telegram.org](https://my.telegram.org)
-   * Masukkan nomor HP Telegram Anda, lalu masukkan kode konfirmasi yang masuk di Telegram.
-   * Pilih menu **API development tools**.
-   * Isi kolom `App title` dan `Short name` sembarang (misal: `pembersih`).
-   * Salin **`api_id`** (angka) dan **`api_hash`** (kombinasi huruf & angka).
+3. Dapatkan **API ID** & **API HASH** gratis dari [https://my.telegram.org](https://my.telegram.org) ➔ **API development tools**.
 
----
-
-## 🚀 Cara Menjalankan
-
-1. Buka folder script ini di Terminal / CMD / Pydroid 3.
-2. Jalankan perintah:
-   ```bash
-   python clean_telegram_groups.py
-   ```
-3. Di awal, masukkan:
-   * **API ID** & **API HASH** Anda (hanya diminta 1x, otomatis tersimpan).
-   * Nomor HP Telegram & kode login yang masuk.
-   * Kata kunci grup penting Anda (misal: `kampus, kantor, keluarga, bisnis`).
-4. Script akan menampilkan:
-   * 🛡️ Daftar yang **DILINDUNGI** (Aman).
-   * 🎯 Daftar yang **AKAN DIHAPUS**.
-5. Ketik **`y`** lalu tekan **Enter**! Selesai, akun Anda langsung bersih kinclong!
+### Cara Menjalankan:
+```bash
+python clean_telegram_groups.py
+```
+1. Masukkan **API ID**, **API HASH**, Nomor HP Telegram, dan kode OTP yang masuk.
+2. Tambahkan kata kunci grup penting Anda (misal: `kampus, kantor, keluarga, bisnis`).
+3. Periksa daftar **Dilindungi** & **Target**, lalu ketik **`y`** dan **Enter**.
 
 ---
 

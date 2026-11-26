@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CleanGram — Pembersih Massal Grup & Spam Telegram</title>
+  <meta name="description" content="Keluar dari puluhan/ratusan grup spam, saluran tak dikenal, dan bot spam Telegram secara otomatis sekali klik dengan proteksi kontak." />
+  <meta name="theme-color" content="#0F172A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="CleanGram" />
+
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+  <link rel="apple-touch-icon" href="/static/icon-192.png" />
+  <link rel="manifest" href="/static/manifest.json" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slatebg: '#090E1A',
+            cardbg: '#111827',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #090E1A;
+      background-image:
+        radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.14) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .glass {
+      background: rgba(17, 24, 39, 0.78);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scroll::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.35);
+      border-radius: 9999px;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 flex flex-col antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- Navbar -->
+  <header class="w-full border-b border-white/5 bg-slate-950/60 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <a href="/" class="flex items-center gap-3 group">
+        <img src="/static/logo.png" alt="Logo CleanGram" class="w-10 h-10 rounded-xl shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-transform" />
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent">CleanGram</span>
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/25">WEB & PWA</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Pembersih Massal Grup & Spam Telegram</p>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-2">
+        <button id="pwaInstallBtn" type="button" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-medium transition">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Install App</span>
+        </button>
+        <a href="https://github.com/BenedichtusRW/cleangram" target="_blank" rel="noopener noreferrer"
+           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs font-medium transition">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Source Code</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 w-full max-w-4xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-6">
+
+    <!-- Hero & Trust Badges -->
+    <section class="text-center space-y-3">
+      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
+        Bersihkan Akun Telegram dalam <span class="bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent">Hitungan Detik</span>
+      </h1>
+      <p class="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
+        Keluar dari puluhan grup spam, saluran tak dikenal, dan hapus chat bot nakal sekaligus—tanpa menyentuh kontak teman atau grup penting Anda.
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Kontak HP 100% Aman
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-sky-500/10 text-sky-300 border border-sky-500/20">
+          <i data-lucide="lock" class="w-3.5 h-3.5"></i> Zero Storage & Auto Logout
+        </span>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-purple-500/10 text-purple-300 border border-purple-500/20">
+          <i data-lucide="ban" class="w-3.5 h-3.5"></i> Keluar Tanpa Blokir
+        </span>
+      </div>
+    </section>
+
+    <!-- Step Indicator -->
+    <nav aria-label="Progress" class="grid grid-cols-4 gap-2 text-center text-[11px] sm:text-xs font-medium">
+      <div id="stepInd1" class="py-2 px-1 rounded-xl border border-sky-500/40 bg-sky-500/15 text-sky-300 transition">1. Nomor HP</div>
+      <div id="stepInd2" class="py-2 px-1 rounded-xl border border-white/10 bg-white/5 text-slate-500 transition">2. OTP & Filter</div>
+      <div id="stepInd3" class="py-2 px-1 rounded-xl border border-white/10 bg-white/5 text-slate-500 transition">3. Pilih Target</div>
+      <div id="stepInd4" class="py-2 px-1 rounded-xl border border-white/10 bg-white/5 text-slate-500 transition">4. Bersihkan</div>
+    </nav>
+
+    <!-- Global Error Banner -->
+    <div id="errorBanner" class="hidden rounded-xl border border-rose-500/40 bg-rose-500/15 px-4 py-3 text-sm text-rose-200 flex items-start gap-3">
+      <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-400 shrink-0 mt-0.5"></i>
+      <div class="flex-1" id="errorText"></div>
+      <button type="button" onclick="hideError()" class="text-rose-300 hover:text-white">
+        <i data-lucide="x" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- STEP 1: PHONE INPUT -->
+    <section id="step1Card" class="glass rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+          <i data-lucide="smartphone" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h2 class="font-bold text-lg text-white">Masuk dengan Akun Telegram</h2>
+          <p class="text-xs text-slate-400">Kode OTP resmi akan dikirim langsung ke aplikasi Telegram Anda.</p>
+        </div>
+      </div>
+
+      <form id="phoneForm" class="space-y-4">
+        <div>
+          <label for="phoneInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+            Nomor HP Telegram
+          </label>
+          <input
+            id="phoneInput"
+            type="tel"
+            required
+            autocomplete="tel"
+            placeholder="Contoh: +6281234567890 atau 081234567890"
+            class="w-full rounded-xl bg-slate-900/90 border border-white/10 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 px-4 py-3 text-white placeholder-slate-500 text-base outline-none transition"
+          />
+        </div>
+
+        <!-- Optional Custom API Accordion -->
+        <details class="rounded-xl bg-slate-900/60 border border-white/5 px-4 py-3 text-xs text-slate-400">
+          <summary class="cursor-pointer font-medium text-slate-300 hover:text-sky-300 select-none flex items-center gap-2">
+            <span>⚙️ Pengaturan Lanjutan: Gunakan API ID / Hash Sendiri (Opsional)</span>
+          </summary>
+          <div class="mt-3 space-y-3 pt-3 border-t border-white/5">
+            <p class="text-[11px] text-slate-400">
+              Biarkan kosong untuk memakai API sistem. Isi hanya jika Anda ingin menggunakan API pribadi dari <a href="https://my.telegram.org" target="_blank" class="text-sky-400 underline">my.telegram.org</a>.
+            </p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input id="customApiId" type="number" placeholder="API ID (Angka)" class="rounded-lg bg-slate-950 border border-white/10 px-3 py-2 text-white text-xs outline-none focus:border-sky-500" />
+              <input id="customApiHash" type="text" placeholder="API Hash (Huruf & Angka)" class="rounded-lg bg-slate-950 border border-white/10 px-3 py-2 text-white text-xs outline-none focus:border-sky-500" />
+            </div>
+          </div>
+        </details>
+
+        <button id="sendCodeBtn" type="submit"
+          class="w-full py-3.5 px-5 rounded-xl font-bold text-white bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          <i data-lucide="send" class="w-4 h-4"></i>
+          <span>Kirim Kode OTP Telegram</span>
+        </button>
+      </form>
+
+      <div class="rounded-xl bg-slate-900/50 border border-white/5 p-3.5 text-xs text-slate-400 flex items-start gap-3">
+        <i data-lucide="info" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
+        <p>
+          <strong class="text-slate-200">Privasi Terjamin:</strong> CleanGram berjalan penuh di RAM sementara (Zero Storage). Begitu selesai membersihkan grup, sesi ini langsung di-<em>logout</em> permanen dari menu Telegram Devices Anda.
+        </p>
+      </div>
+    </section>
+
+    <!-- STEP 2: OTP + 2FA + WHITELIST -->
+    <section id="step2Card" class="hidden glass rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+            <i data-lucide="key-round" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-lg text-white">Verifikasi & Whitelist</h2>
+            <p class="text-xs text-slate-400">Kode dikirim ke akun <span id="displayPhone" class="text-sky-300 font-semibold"></span></p>
+          </div>
+        </div>
+        <button type="button" onclick="resetToStep1()" class="text-xs text-slate-400 hover:text-white underline">Ganti Nomor</button>
+      </div>
+
+      <form id="verifyForm" class="space-y-4">
+        <div id="otpFieldWrap">
+          <label for="otpInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+            Kode OTP Telegram (5 Digit)
+          </label>
+          <input
+            id="otpInput"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            placeholder="Contoh: 12345"
+            class="w-full rounded-xl bg-slate-900/90 border border-white/10 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 px-4 py-3 text-white text-center tracking-[0.4em] font-mono text-xl placeholder:tracking-normal placeholder:text-sm placeholder:font-sans outline-none transition"
+          />
+        </div>
+
+        <div id="twoFaWrap" class="hidden space-y-2 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+          <label for="twoFaInput" class="block text-xs font-semibold text-amber-300 flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-4 h-4"></i>
+            Akun Anda Dilindungi Verifikasi 2 Langkah (2FA)
+          </label>
+          <input
+            id="twoFaInput"
+            type="password"
+            placeholder="Masukkan Password 2FA Telegram Anda"
+            class="w-full rounded-xl bg-slate-950 border border-amber-500/40 focus:border-amber-400 px-4 py-2.5 text-white text-sm outline-none"
+          />
+        </div>
+
+        <div>
+          <label for="whitelistInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+            Kata Kunci Whitelist / Grup Penting (Anti-Hapus)
+          </label>
+          <p class="text-[11px] text-slate-400 mb-2">
+            Semua <strong>Kontak HP & Chat Pribadi otomatis aman</strong>. Tambahkan nama grup/channel penting yang tidak boleh disentuh (pisahkan dengan koma):
+          </p>
+          <input
+            id="whitelistInput"
+            type="text"
+            placeholder="Contoh: kampus, kantor, keluarga, crypto, alumni"
+            class="w-full rounded-xl bg-slate-900/90 border border-white/10 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 px-4 py-3 text-white placeholder-slate-500 text-sm outline-none transition"
+          />
+        </div>
+
+        <button id="verifyBtn" type="submit"
+          class="w-full py-3.5 px-5 rounded-xl font-bold text-white bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50">
+          <i data-lucide="scan-search" class="w-4 h-4"></i>
+          <span>Verifikasi & Pindai Akun Sekarang</span>
+        </button>
+      </form>
+    </section>
+
+    <!-- STEP 3: REVIEW & SELECT TARGETS -->
+    <section id="step3Card" class="hidden glass rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <h2 class="font-bold text-lg text-white">Hasil Pemindaian: <span id="userDisplayName" class="text-sky-300"></span></h2>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Periksa kembali sebelum membersihkan. Anda dapat menghapus centang pada item yang ingin dipertahankan.</p>
+        </div>
+        <button type="button" onclick="cancelAndLogout()"
+          class="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 text-xs font-medium transition flex items-center gap-1.5">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          <span>Batalkan & Logout</span>
+        </button>
+      </div>
+
+      <!-- Summary Counters -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="rounded-xl bg-rose-500/10 border border-rose-500/25 p-3.5">
+          <div class="text-xs text-rose-300 font-medium flex items-center gap-1.5">
+            <i data-lucide="target" class="w-4 h-4"></i> Target Ditemukan
+          </div>
+          <div id="targetCountNum" class="text-2xl font-extrabold text-white mt-1">0</div>
+        </div>
+        <div class="rounded-xl bg-emerald-500/10 border border-emerald-500/25 p-3.5">
+          <div class="text-xs text-emerald-300 font-medium flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-4 h-4"></i> Dilindungi (Aman)
+          </div>
+          <div id="protectedCountNum" class="text-2xl font-extrabold text-white mt-1">0</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-2 border-b border-white/10 pb-2">
+        <button type="button" id="tabTargetBtn" onclick="switchTab('targets')"
+          class="px-4 py-2 rounded-lg text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30 transition">
+          🎯 Target Dihapus
+        </button>
+        <button type="button" id="tabProtectedBtn" onclick="switchTab('protected')"
+          class="px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-slate-400 hover:text-white border border-transparent transition">
+          🛡️ Daftar Dilindungi
+        </button>
+      </div>
+
+      <!-- Tab Content: Targets -->
+      <div id="targetsPanel" class="space-y-3">
+        <div class="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
+          <input id="targetSearch" type="text" oninput="renderTargets()" placeholder="Cari nama grup / channel / bot..."
+            class="w-full sm:w-64 rounded-lg bg-slate-900 border border-white/10 px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500" />
+          <div class="flex items-center gap-2 text-xs">
+            <button type="button" onclick="toggleSelectAll(true)" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-sky-300">Pilih Semua</button>
+            <button type="button" onclick="toggleSelectAll(false)" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400">Hapus Semua</button>
+          </div>
+        </div>
+
+        <div id="targetsList" class="max-h-80 overflow-y-auto custom-scroll space-y-2 pr-1"></div>
+      </div>
+
+      <!-- Tab Content: Protected -->
+      <div id="protectedPanel" class="hidden space-y-2">
+        <p class="text-xs text-emerald-300/90">Item di bawah ini 100% dilindungi oleh sistem dan tidak akan disentuh:</p>
+        <div id="protectedList" class="max-h-80 overflow-y-auto custom-scroll space-y-2 pr-1"></div>
+      </div>
+
+      <!-- Auto Logout Checkbox & Action Button -->
+      <div class="pt-3 border-t border-white/10 space-y-3">
+        <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer select-none">
+          <input id="autoLogoutCheck" type="checkbox" checked class="w-4 h-4 rounded accent-emerald-500" />
+          <span>Otomatis Logout sesi CleanGram dari Telegram Devices setelah pembersihan selesai (Disarankan)</span>
+        </label>
+
+        <button id="startCleanBtn" type="button" onclick="startCleaning()"
+          class="w-full py-3.5 px-5 rounded-xl font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span id="startCleanText">Bersihkan Target Terpilih Sekarang</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- STEP 4: PROGRESS & COMPLETION -->
+    <section id="step4Card" class="hidden glass rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div id="cleanStatusIcon" class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
+            <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+          </div>
+          <div>
+            <h2 id="cleanStatusTitle" class="font-bold text-lg text-white">Sedang Membersihkan Akun...</h2>
+            <p id="cleanStatusSub" class="text-xs text-slate-400">Jangan tutup halaman ini hingga proses selesai.</p>
+          </div>
+        </div>
+        <span id="cleanPct" class="text-lg font-extrabold text-sky-400 font-mono">0%</span>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full h-3 rounded-full bg-slate-900 overflow-hidden border border-white/10">
+        <div id="cleanProgressBar" class="h-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+      </div>
+
+      <!-- Live Terminal Log -->
+      <div id="liveLog" class="h-64 overflow-y-auto custom-scroll rounded-xl bg-slate-950/90 border border-white/10 p-3.5 font-mono text-xs space-y-1.5 text-slate-300"></div>
+
+      <!-- Done Banner -->
+      <div id="doneSummary" class="hidden space-y-4">
+        <div class="rounded-xl bg-emerald-500/15 border border-emerald-500/30 p-4 space-y-2">
+          <div class="flex items-center gap-2 text-emerald-300 font-bold text-sm">
+            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+            <span>Pembersihan Selesai Total & Sesi Telah Di-Logout Permanen!</span>
+          </div>
+          <p id="doneStatsText" class="text-xs text-slate-200"></p>
+        </div>
+
+        <div class="rounded-xl bg-slate-900/70 border border-white/10 p-4 text-xs text-slate-300 space-y-1">
+          <p class="font-semibold text-sky-300">💡 Tips Anti-Spam Telegram:</p>
+          <p>Buka Telegram di HP ➔ <strong>Settings</strong> ➔ <strong>Privacy & Security</strong> ➔ <strong>Groups & Channels</strong> ➔ Ubah ke <strong>My Contacts</strong> agar akun tak dikenal tidak bisa mengundang Anda sembarangan.</p>
+        </div>
+
+        <button type="button" onclick="window.location.reload()"
+          class="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 transition">
+          Selesai & Kembali ke Beranda
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="w-full border-t border-white/5 py-5 text-center text-xs text-slate-500 px-4">
+    <p>
+      <strong>CleanGram</strong> • Open Source Multi-Platform Telegram Cleaner (Web, PWA, CLI) •
+      <a href="https://github.com/BenedichtusRW/cleangram" target="_blank" class="text-sky-400 hover:underline">GitHub Repository</a>
+    </p>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    let currentFlowId = null;
+    let scannedTargets = [];
+    let selectedSet = new Set();
+    let scannedProtected = [];
+    let deferredPrompt = null;
+
+    // PWA Service Worker & Install Button
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('pwaInstallBtn');
+      btn.classList.remove('hidden');
+      btn.classList.add('flex');
+      btn.onclick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        btn.classList.add('hidden');
+      };
+    });
+
+    function showError(msg) {
+      document.getElementById('errorText').textContent = msg;
+      document.getElementById('errorBanner').classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function hideError() {
+      document.getElementById('errorBanner').classList.add('hidden');
+    }
+
+    function setStep(stepNum) {
+      hideError();
+      [1, 2, 3, 4].forEach((n) => {
+        document.getElementById(`step${n}Card`).classList.toggle('hidden', n !== stepNum);
+        const ind = document.getElementById(`stepInd${n}`);
+        if (n < stepNum) {
+          ind.className = 'py-2 px-1 rounded-xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-300 transition';
+        } else if (n === stepNum) {
+          ind.className = 'py-2 px-1 rounded-xl border border-sky-500/40 bg-sky-500/20 text-sky-300 font-bold transition';
+        } else {
+          ind.className = 'py-2 px-1 rounded-xl border border-white/10 bg-white/5 text-slate-500 transition';
+        }
+      });
+    }
+
+    function resetToStep1() {
+      if (currentFlowId) {
+        fetch('/api/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flow_id: currentFlowId })
+        }).catch(() => {});
+      }
+      currentFlowId = null;
+      document.getElementById('twoFaWrap').classList.add('hidden');
+      document.getElementById('otpFieldWrap').classList.remove('hidden');
+      document.getElementById('otpInput').value = '';
+      document.getElementById('twoFaInput').value = '';
+      setStep(1);
+    }
+
+    async function cancelAndLogout() {
+      if (currentFlowId) {
+        await fetch('/api/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flow_id: currentFlowId })
+        }).catch(() => {});
+      }
+      window.location.reload();
+    }
+
+    // STEP 1: Send OTP
+    document.getElementById('phoneForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+      const btn = document.getElementById('sendCodeBtn');
+      const phone = document.getElementById('phoneInput').value.trim();
+      const customApiIdRaw = document.getElementById('customApiId').value.trim();
+      const customApiHash = document.getElementById('customApiHash').value.trim();
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Mengirim OTP...</span>';
+
+      try {
+        const res = await fetch('/api/send-code', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone,
+            custom_api_id: customApiIdRaw ? Number(customApiIdRaw) : null,
+            custom_api_hash: customApiHash || null
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Gagal mengirim OTP.');
+
+        currentFlowId = data.flow_id;
+        document.getElementById('displayPhone').textContent = data.phone;
+        setStep(2);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i><span>Kirim Kode OTP Telegram</span>';
+        lucide.createIcons();
+      }
+    });
+
+    // STEP 2: Verify OTP / 2FA & Scan
+    document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideError();
+      const btn = document.getElementById('verifyBtn');
+      const code = document.getElementById('otpInput').value.trim();
+      const password = document.getElementById('twoFaInput').value;
+      const whitelist = document.getElementById('whitelistInput').value.trim();
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Memeriksa Akun & Memindai Grup...</span>';
+
+      try {
+        const res = await fetch('/api/verify-scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            flow_id: currentFlowId,
+            code: code || null,
+            password: password || null,
+            whitelist
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Gagal verifikasi OTP.');
+
+        if (data.status === '2fa_required') {
+          document.getElementById('otpFieldWrap').classList.add('hidden');
+          document.getElementById('twoFaWrap').classList.remove('hidden');
+          document.getElementById('twoFaInput').focus();
+          return;
+        }
+
+        // Scan success!
+        const fullName = `${data.user.first_name} ${data.user.last_name}`.trim();
+        document.getElementById('userDisplayName').textContent = data.user.username
+          ? `${fullName} (@${data.user.username})`
+          : fullName;
+
+        scannedTargets = data.targets || [];
+        scannedProtected = data.protected || [];
+        selectedSet = new Set(scannedTargets.map(t => t.id));
+
+        document.getElementById('targetCountNum').textContent = scannedTargets.length;
+        document.getElementById('protectedCountNum').textContent = scannedProtected.length;
+
+        renderTargets();
+        renderProtected();
+        setStep(3);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="scan-search" class="w-4 h-4"></i><span>Verifikasi & Pindai Akun Sekarang</span>';
+        lucide.createIcons();
+      }
+    });
+
+    function switchTab(tab) {
+      const isTarget = tab === 'targets';
+      document.getElementById('targetsPanel').classList.toggle('hidden', !isTarget);
+      document.getElementById('protectedPanel').classList.toggle('hidden', isTarget);
+      document.getElementById('tabTargetBtn').className = isTarget
+        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30 transition'
+        : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-slate-400 hover:text-white border border-transparent transition';
+      document.getElementById('tabProtectedBtn').className = !isTarget
+        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition'
+        : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-slate-400 hover:text-white border border-transparent transition';
+    }
+
+    function updateCleanBtnLabel() {
+      const count = selectedSet.size;
+      const btn = document.getElementById('startCleanBtn');
+      const lbl = document.getElementById('startCleanText');
+      btn.disabled = count === 0;
+      lbl.textContent = count > 0
+        ? `Bersihkan ${count} Target Terpilih Sekarang`
+        : 'Pilih Minimal 1 Target untuk Dibersihkan';
+    }
+
+    function toggleSelectAll(checked) {
+      if (checked) {
+        scannedTargets.forEach(t => selectedSet.add(t.id));
+      } else {
+        selectedSet.clear();
+      }
+      renderTargets();
+    }
+
+    function renderTargets() {
+      const container = document.getElementById('targetsList');
+      const query = document.getElementById('targetSearch').value.trim().toLowerCase();
+      container.innerHTML = '';
+
+      const filtered = scannedTargets.filter(t =>
+        t.name.toLowerCase().includes(query) ||
+        (t.username && t.username.toLowerCase().includes(query)) ||
+        t.type.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'text-center py-8 text-xs text-slate-400';
+        empty.textContent = scannedTargets.length === 0
+          ? '🎉 Selamat! Tidak ada grup/bot spam yang ditemukan di akun Anda.'
+          : 'Tidak ada hasil yang cocok dengan pencarian Anda.';
+        container.appendChild(empty);
+        updateCleanBtnLabel();
+        return;
+      }
+
+      filtered.forEach(t => {
+        const row = document.createElement('label');
+        row.className = 'flex items-center gap-3 p-3 rounded-xl bg-slate-900/70 hover:bg-slate-900 border border-white/5 cursor-pointer transition';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = selectedSet.has(t.id);
+        cb.className = 'w-4 h-4 rounded accent-rose-500 shrink-0';
+        cb.onchange = () => {
+          if (cb.checked) selectedSet.add(t.id);
+          else selectedSet.delete(t.id);
+          updateCleanBtnLabel();
+        };
+
+        const info = document.createElement('div');
+        info.className = 'flex-1 min-w-0';
+        const title = document.createElement('div');
+        title.className = 'text-sm font-medium text-white truncate';
+        title.textContent = t.name;
+        const sub = document.createElement('div');
+        sub.className = 'text-[11px] text-slate-400 truncate';
+        sub.textContent = t.username ? `@${t.username}` : 'Tanpa username';
+        info.appendChild(title);
+        info.appendChild(sub);
+
+        const badge = document.createElement('span');
+        badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/25 shrink-0';
+        badge.textContent = t.type;
+
+        row.appendChild(cb);
+        row.appendChild(info);
+        row.appendChild(badge);
+        container.appendChild(row);
+      });
+
+      updateCleanBtnLabel();
+    }
+
+    function renderProtected() {
+      const container = document.getElementById('protectedList');
+      container.innerHTML = '';
+
+      if (scannedProtected.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'text-center py-6 text-xs text-slate-500';
+        empty.textContent = 'Tidak ada item dilindungi yang terdeteksi.';
+        container.appendChild(empty);
+        return;
+      }
+
+      scannedProtected.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-900/50 border border-emerald-500/15';
+
+        const info = document.createElement('div');
+        info.className = 'min-w-0';
+        const title = document.createElement('div');
+        title.className = 'text-sm font-medium text-slate-200 truncate';
+        title.textContent = p.name;
+        const sub = document.createElement('div');
+        sub.className = 'text-[11px] text-slate-500 truncate';
+        sub.textContent = p.username ? `@${p.username}` : 'Aman';
+        info.appendChild(title);
+        info.appendChild(sub);
+
+        const badge = document.createElement('span');
+        badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 shrink-0';
+        badge.textContent = p.reason;
+
+        row.appendChild(info);
+        row.appendChild(badge);
+        container.appendChild(row);
+      });
+    }
+
+    function appendLog(text, colorClass = 'text-slate-300') {
+      const logBox = document.getElementById('liveLog');
+      const line = document.createElement('div');
+      line.className = colorClass;
+      line.textContent = text;
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    // STEP 4: Stream Cleaning Progress via SSE
+    async function startCleaning() {
+      const ids = Array.from(selectedSet);
+      if (ids.length === 0) return;
+
+      const autoLogout = document.getElementById('autoLogoutCheck').checked;
+      setStep(4);
+      document.getElementById('liveLog').innerHTML = '';
+      appendLog(`[MEMULAI] Memproses ${ids.length} target terpilih...`, 'text-sky-300');
+
+      try {
+        const response = await fetch('/api/clean', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            flow_id: currentFlowId,
+            selected_ids: ids,
+            auto_logout: autoLogout
+          })
+        });
+
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.detail || 'Gagal memulai pembersihan.');
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const parts = buffer.split('\n\n');
+          buffer = parts.pop();
+
+          for (const part of parts) {
+            if (!part.startsWith('data: ')) continue;
+            const evt = JSON.parse(part.slice(6));
+
+            if (evt.event === 'progress') {
+              const pct = Math.round((evt.current / evt.total) * 100);
+              document.getElementById('cleanProgressBar').style.width = `${pct}%`;
+              document.getElementById('cleanPct').textContent = `${pct}%`;
+
+              if (evt.status === 'ok') {
+                appendLog(`✓ [${evt.current}/${evt.total}] Keluar & Hapus: ${evt.name} (${evt.type})`, 'text-emerald-400');
+              } else {
+                appendLog(`✗ [${evt.current}/${evt.total}] Dilewati: ${evt.name} — ${evt.message}`, 'text-amber-400');
+              }
+            } else if (evt.event === 'floodwait') {
+              appendLog(`⏳ [Limit Telegram] Menunggu ${evt.seconds} detik untuk ${evt.name}...`, 'text-amber-300');
+            } else if (evt.event === 'done') {
+              document.getElementById('cleanProgressBar').style.width = '100%';
+              document.getElementById('cleanPct').textContent = '100%';
+              document.getElementById('cleanStatusTitle').textContent = 'Pembersihan Selesai!';
+              document.getElementById('cleanStatusSub').textContent = 'Akun Telegram Anda kini sudah bersih.';
+              document.getElementById('cleanStatusIcon').innerHTML = '<i data-lucide="check" class="w-5 h-5 text-emerald-400"></i>';
+              document.getElementById('cleanStatusIcon').className = 'w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center';
+              document.getElementById('doneStatsText').textContent =
+                `Berhasil keluar & menghapus riwayat ${evt.sukses} spam` +
+                (evt.gagal > 0 ? ` (${evt.gagal} item dilewati).` : '.');
+              document.getElementById('doneSummary').classList.remove('hidden');
+              currentFlowId = null;
+              lucide.createIcons();
+            } else if (evt.event === 'error') {
+              appendLog(`❌ Error: ${evt.message}`, 'text-rose-400');
+            }
+          }
+        }
+      } catch (err) {
+        showError(err.message);
+        appendLog(`❌ Koneksi terputus: ${err.message}`, 'text-rose-400');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 telethon>=1.36.0
-ttkbootstrap>=1.13.0
+pywebview>=6.0.0
+requests>=2.32.0
 pillow>=10.4.0
 qrcode>=7.4.2
 pyinstaller>=6.10.0

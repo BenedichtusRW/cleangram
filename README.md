@@ -48,9 +48,9 @@ Repository ini sudah dikonfigurasi *stateless* dan dilengkapi [`web/vercel.json`
 
 ---
 
-## 💻 Opsi 2: Aplikasi Desktop Windows (`desktop/` — 100% Lokal & Offline)
+## 💻 Opsi 2: Aplikasi Desktop Windows (`desktop/` — Tanpa Setup API + Mode Lokal)
 
-Cocok untuk membersihkan ratusan/ribuan grup sekaligus tanpa batas server, atau bagi pengguna yang ingin 100% koneksi langsung dari PC ke Telegram.
+Tampilan modern *Obsidian Dark* dengan 2 mode fleksibel: **Mode Cepat (Default)** langsung jalan lewat Scan QR / OTP tanpa perlu daftar API ID, plus **Mode Lanjutan 100% Lokal** bagi pengguna yang ingin koneksi langsung PC ↔ Telegram dengan API pribadi.
 
 ### Download Langsung (Tanpa Install Python):
 👉 **[Download CleanGram.exe (Windows)](https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.exe)** *(lihat semua rilis di [GitHub Releases](https://github.com/BenedichtusRW/cleangram/releases))*

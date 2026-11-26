@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CleanGram Desktop</title>
+  <style>
+    :root {
+      --bg: #09090B;
+      --card: #111114;
+      --card-elev: #18181B;
+      --border: #27272A;
+      --border-soft: rgba(39, 39, 42, 0.7);
+      --text: #FAFAFA;
+      --text-muted: #A1A1AA;
+      --text-dim: #71717A;
+      --accent: #24A1DE;
+      --accent-hover: #1D8FC7;
+      --emerald: #10B981;
+      --red: #EF4444;
+      --red-hover: #DC2626;
+      --amber: #F59E0B;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .mono { font-family: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace; }
+    .hidden { display: none !important; }
+
+    /* Custom Scrollbar */
+    .scroll-area::-webkit-scrollbar { width: 7px; }
+    .scroll-area::-webkit-scrollbar-track { background: transparent; }
+    .scroll-area::-webkit-scrollbar-thumb { background: #27272A; border-radius: 999px; }
+    .scroll-area::-webkit-scrollbar-thumb:hover { background: #3F3F46; }
+
+    /* Header */
+    header {
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+      background: rgba(9, 9, 11, 0.96);
+      padding: 0 22px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    .version-badge {
+      font-size: 11px;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 7px;
+      background: var(--card);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(36, 161, 222, 0.35);
+      background: rgba(36, 161, 222, 0.12);
+      color: #7DD3FC;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+    .mode-pill.local {
+      border-color: rgba(16, 185, 129, 0.35);
+      background: rgba(16, 185, 129, 0.12);
+      color: #6EE7B7;
+    }
+    .mode-pill:hover { filter: brightness(1.12); }
+
+    .btn-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 11px;
+      border-radius: 8px;
+      background: var(--card-elev);
+      border: 1px solid var(--border);
+      color: #D4D4D8;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+    .btn-ghost:hover { background: #27272A; color: #fff; }
+
+    /* Main Scrollable Workspace */
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 22px 20px 28px;
+    }
+    .workspace {
+      width: 100%;
+      max-width: 610px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .workspace.wide { max-width: 720px; }
+
+    /* Step Bar */
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .step-item {
+      text-align: center;
+      padding-bottom: 10px;
+      border-bottom: 2px solid transparent;
+      color: var(--text-dim);
+      transition: 0.2s ease;
+    }
+    .step-item.active {
+      border-bottom-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+    .step-item.done {
+      border-bottom-color: var(--emerald);
+      color: #34D399;
+    }
+
+    /* Alert Banner */
+    .error-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      background: rgba(69, 10, 10, 0.45);
+      color: #FECACA;
+      font-size: 13px;
+      user-select: text;
+    }
+    .error-banner button {
+      background: none;
+      border: none;
+      color: #FCA5A5;
+      cursor: pointer;
+      padding: 2px;
+      line-height: 1;
+    }
+    .error-banner button:hover { color: #fff; }
+
+    /* Card */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .card-header-center { text-align: center; }
+    .card-header-center h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #fff;
+    }
+    .card-header-center p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Segmented Auth Switcher */
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      padding: 4px;
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+    .seg-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+    .seg-btn:hover { color: #fff; }
+    .seg-btn.active {
+      background: #27272A;
+      color: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Form Controls */
+    .field-label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #E4E4E7;
+      margin-bottom: 4px;
+    }
+    .field-help {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+    .code-inline {
+      background: #27272A;
+      color: #F4F4F5;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+
+    .input {
+      width: 100%;
+      border-radius: 11px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 10px 13px;
+      color: #fff;
+      font-size: 13.5px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .input::placeholder { color: #52525B; }
+    .input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(36, 161, 222, 0.2);
+    }
+    .input-otp {
+      text-align: center;
+      font-size: 20px;
+      letter-spacing: 0.55em;
+      font-weight: 700;
+    }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.08s, opacity 0.15s;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-primary:active:not(:disabled) { transform: scale(0.99); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .btn-danger {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: none;
+      background: var(--red-hover);
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn-danger:hover:not(:disabled) { background: var(--red); }
+    .btn-danger:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-secondary {
+      padding: 8px 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--card-elev);
+      color: #E4E4E7;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+    .btn-secondary:hover { background: #27272A; color: #fff; }
+
+    /* QR Box */
+    .qr-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 14px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+    .qr-frame {
+      padding: 12px;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+    }
+    .qr-frame img {
+      display: block;
+      width: 210px;
+      height: 210px;
+      image-rendering: pixelated;
+    }
+    .qr-status {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+    .qr-steps {
+      width: 100%;
+      border-top: 1px solid var(--border-soft);
+      padding-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 1s linear infinite; }
+
+    /* Advanced Accordion */
+    details.advanced-box {
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 11px 14px;
+    }
+    details.advanced-box summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    details.advanced-box summary::-webkit-details-marker { display: none; }
+    details.advanced-box summary:hover { color: #fff; }
+    .adv-body {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #D4D4D8;
+      cursor: pointer;
+    }
+    .check-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* Trust grid */
+    .trust-grid {
+      border-top: 1px solid var(--border-soft);
+      padding-top: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9px 14px;
+      font-size: 11.5px;
+      color: var(--text-dim);
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    /* Step 3 Metrics & Lists */
+    .account-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dot-online {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--emerald);
+      display: inline-block;
+    }
+    .stat-card {
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 13px 15px;
+    }
+    .stat-card .label {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stat-card .value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #fff;
+      margin-top: 3px;
+    }
+
+    .pill-tabs {
+      display: inline-flex;
+      gap: 5px;
+      padding: 4px;
+      border-radius: 11px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      width: fit-content;
+    }
+    .pill-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      padding: 6px 13px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .pill-tab.active { background: #27272A; color: #fff; }
+
+    .list-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .items-box {
+      max-height: 290px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding-right: 4px;
+    }
+    .item-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 10px 12px;
+      border-radius: 11px;
+      background: var(--bg);
+      border: 1px solid var(--border-soft);
+      transition: background 0.12s;
+    }
+    .item-row.clickable { cursor: pointer; }
+    .item-row.clickable:hover { background: var(--card-elev); }
+    .item-row input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--red);
+      flex-shrink: 0;
+    }
+    .item-meta { flex: 1; min-width: 0; }
+    .item-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #F4F4F5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-sub {
+      font-size: 11.5px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card-elev);
+      color: #D4D4D8;
+      flex-shrink: 0;
+    }
+    .tag.safe {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(6, 78, 59, 0.4);
+      color: #34D399;
+    }
+
+    /* Step 4 Progress & Log */
+    .progress-track {
+      width: 100%;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #24A1DE, #38BDF8);
+      transition: width 0.25s ease;
+    }
+    .log-box {
+      height: 235px;
+      overflow-y: auto;
+      border-radius: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 12px;
+      font-size: 11.5px;
+      line-height: 1.55;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      user-select: text;
+    }
+    .summary-ok {
+      border-radius: 12px;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      background: rgba(6, 78, 59, 0.28);
+      padding: 13px 15px;
+    }
+    .tip-box {
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      padding: 12px 15px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Modal Confirm */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 100;
+    }
+    .modal-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Footer */
+    footer {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border-soft);
+      background: var(--bg);
+      padding: 10px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--text-dim);
+      gap: 10px;
+    }
+    .link-btn {
+      background: none;
+      border: none;
+      color: #D4D4D8;
+      font-size: 11.5px;
+      cursor: pointer;
+      padding: 0;
+    }
+    .link-btn:hover { color: var(--accent); text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <img src="logo.png" alt="CleanGram" />
+      <span class="brand-title">CleanGram</span>
+      <span class="version-badge mono">Desktop v2.0</span>
+    </div>
+
+    <div class="header-actions">
+      <button id="headerModePill" type="button" class="mode-pill" onclick="openAdvancedSection()" title="Klik untuk atur Mode Cepat vs Mode 100% Lokal">
+        <span id="headerModeText">⚡ Mode Cepat (Tanpa API)</span>
+      </button>
+
+      <button type="button" class="btn-ghost" onclick="openExternal('https://github.com/BenedichtusRW/cleangram')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        <span>GitHub</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main class="scroll-area" id="mainScroll">
+    <div id="workspace" class="workspace">
+
+      <!-- Step Indicator -->
+      <nav class="steps" aria-label="Progress">
+        <div id="stepInd1" class="step-item active">01 Login</div>
+        <div id="stepInd2" class="step-item">02 Verifikasi</div>
+        <div id="stepInd3" class="step-item">03 Target</div>
+        <div id="stepInd4" class="step-item">04 Selesai</div>
+      </nav>
+
+      <!-- Error Banner -->
+      <div id="errorBanner" class="error-banner hidden">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F87171" stroke-width="2" style="flex-shrink:0;margin-top:2px">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div id="errorText" style="flex:1"></div>
+        <button type="button" onclick="hideError()" title="Tutup">✕</button>
+      </div>
+
+      <!-- STEP 1: LOGIN -->
+      <section id="step1Card" class="card">
+        <div class="card-header-center">
+          <h1>Masuk ke CleanGram Desktop</h1>
+          <p>Keluar dari grup spam, saluran tak dikenal &amp; bot nakal tanpa menyentuh kontak pribadi.</p>
+        </div>
+
+        <!-- QR vs OTP Switcher -->
+        <div class="segmented">
+          <button type="button" id="tabQrBtn" class="seg-btn active" onclick="switchAuth('qr')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#24A1DE" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v3h-3M14 20h3v1M20 20h1v1"/>
+            </svg>
+            <span>Scan QR (Cepat)</span>
+          </button>
+          <button type="button" id="tabOtpBtn" class="seg-btn" onclick="switchAuth('otp')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+            <span>Nomor HP &amp; OTP</span>
+          </button>
+        </div>
+
+        <!-- Shared Whitelist Field -->
+        <div>
+          <label for="whitelistInputStep1" class="field-label">
+            Grup / Channel / Bot yang <span style="color:#34D399">DILINDUNGI (Jangan Dihapus)</span>
+          </label>
+          <p class="field-help">
+            Ketik <strong>sebagian kata / nama</strong> grup penting Anda agar otomatis masuk daftar aman (pisahkan koma).
+            Contoh: ketik <span class="code-inline">keluarga</span> maka grup <em>"Keluarga Besar"</em> aman. Kontak HP otomatis aman (boleh kosong).
+          </p>
+          <input id="whitelistInputStep1" type="text" class="input"
+            placeholder="Contoh: kampus, kantor, keluarga, crypto, kerjaan" />
+        </div>
+
+        <!-- QR Panel -->
+        <div id="qrPanel" style="display:flex;flex-direction:column;gap:12px;">
+          <div id="qrStartWrap">
+            <button id="qrStartBtn" type="button" class="btn-primary" onclick="startQrLogin()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v3h-3"/>
+              </svg>
+              <span>Buat QR Code Telegram</span>
+            </button>
+            <p style="font-size:11.5px;color:#71717A;text-align:center;margin-top:8px;">
+              Langsung siap pakai tanpa daftar API ID — cukup scan pakai kamera Telegram di HP Anda.
+            </p>
+          </div>
+
+          <div id="qrActiveWrap" class="qr-panel hidden">
+            <div class="qr-frame">
+              <img id="qrImg" alt="QR Login Telegram" />
+            </div>
+            <div class="qr-status">
+              <svg class="spin" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              <span id="qrStatusText">Menunggu Anda scan dari Telegram HP...</span>
+            </div>
+            <ol class="qr-steps">
+              <li>1. Buka aplikasi <strong style="color:#fff">Telegram</strong> di HP Anda.</li>
+              <li>2. Masuk ke <strong style="color:#fff">Settings ➔ Devices ➔ Link Desktop Device</strong>.</li>
+              <li>3. Arahkan kamera ke QR Code di atas.</li>
+            </ol>
+            <div style="display:flex;gap:8px;width:100%;">
+              <button type="button" class="btn-secondary" style="flex:1" onclick="startQrLogin()">Buat Ulang QR</button>
+              <button type="button" class="btn-secondary" onclick="cancelQr()">Batal</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- OTP Panel -->
+        <form id="otpForm" class="hidden" style="display:flex;flex-direction:column;gap:12px;" onsubmit="sendOtp(event)">
+          <div>
+            <label for="phoneInput" class="field-label">Nomor Telepon Telegram</label>
+            <input id="phoneInput" type="tel" class="input" placeholder="+6281234567890 atau 081234567890" required />
+            <p style="font-size:11.5px;color:#71717A;margin-top:6px;">
+              Kode OTP dikirim ke chat resmi Telegram di HP Anda. Jika terkendala, pakai tab <strong style="color:#E4E4E7">Scan QR</strong>.
+            </p>
+          </div>
+          <button id="sendOtpBtn" type="submit" class="btn-primary">
+            <span>Lanjut &amp; Kirim OTP</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </form>
+
+        <!-- Optional Advanced Local Mode Accordion -->
+        <details id="advancedDetails" class="advanced-box">
+          <summary>
+            <span>Mode Lanjutan: Pakai API ID Sendiri / 100% Lokal (Pengguna Biasa Lewati)</span>
+            <span style="font-size:11px;color:#71717A">▾</span>
+          </summary>
+          <div class="adv-body">
+            <p style="font-size:11.5px;color:#A1A1AA;line-height:1.5;">
+              Secara default CleanGram Desktop langsung memakai mode cepat tanpa daftar API.
+              Aktifkan opsi di bawah <strong>hanya</strong> jika ingin koneksi 100% langsung PC ➔ Telegram menggunakan API pribadi dari
+              <button type="button" class="link-btn" style="color:#24A1DE" onclick="openExternal('https://my.telegram.org')">my.telegram.org ↗</button>.
+            </p>
+
+            <label class="check-row">
+              <input id="useLocalToggle" type="checkbox" onchange="onModeToggleChanged()" />
+              <span><strong>Aktifkan Mode 100% Lokal</strong> (pakai API ID &amp; Hash di bawah)</span>
+            </label>
+
+            <div class="grid-2">
+              <div>
+                <label class="field-label" style="font-size:11.5px">API ID (Angka)</label>
+                <input id="apiIdInput" type="text" class="input" placeholder="Opsional" />
+              </div>
+              <div>
+                <label class="field-label" style="font-size:11.5px">API Hash</label>
+                <input id="apiHashInput" type="text" class="input" placeholder="Opsional" />
+              </div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <label class="check-row" style="font-size:11.5px;color:#A1A1AA">
+                <input id="persistLocalCheck" type="checkbox" checked />
+                <span>Simpan di PC ini (~/.cleangram)</span>
+              </label>
+              <div style="display:flex;gap:6px;">
+                <button type="button" class="btn-secondary" onclick="saveAdvancedPrefs()">Simpan Pengaturan</button>
+                <button type="button" class="btn-secondary" onclick="resetToCloudMode()">Pakai Mode Tanpa API</button>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Trust Grid -->
+        <div class="trust-grid">
+          <div class="trust-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+            <span>Kontak HP 100% aman</span>
+          </div>
+          <div class="trust-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>Langsung pakai tanpa API ID</span>
+          </div>
+          <div class="trust-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span>Auto-logout setelah selesai</span>
+          </div>
+          <div class="trust-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
+            <span>Keluar grup tanpa memblokir</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2: VERIFY OTP / 2FA -->
+      <section id="step2Card" class="card hidden">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+          <div>
+            <h2 style="font-size:18px;font-weight:700;color:#fff;">Verifikasi Kode &amp; Filter</h2>
+            <p id="step2SubText" style="font-size:12.5px;color:#A1A1AA;margin-top:3px;"></p>
+          </div>
+          <button type="button" class="btn-secondary" onclick="backToStep1()">Kembali</button>
+        </div>
+
+        <form id="verifyForm" style="display:flex;flex-direction:column;gap:14px;" onsubmit="submitVerify(event)">
+          <div id="otpFieldWrap">
+            <label for="otpInput" class="field-label">Kode OTP Telegram (5 Digit)</label>
+            <input id="otpInput" type="text" inputmode="numeric" class="input input-otp mono" placeholder="•••••" />
+          </div>
+
+          <div id="twoFaWrap" class="hidden" style="padding:14px;border-radius:12px;border:1px solid rgba(245,158,11,0.35);background:rgba(120,53,15,0.22);display:flex;flex-direction:column;gap:8px;">
+            <label for="twoFaInput" class="field-label" style="color:#FCD34D;margin:0">
+              Password Verifikasi 2 Langkah (2FA)
+            </label>
+            <input id="twoFaInput" type="password" class="input" placeholder="Masukkan Password 2FA Telegram Anda" />
+          </div>
+
+          <div>
+            <label for="whitelistInputStep2" class="field-label">
+              Kata Kunci Dilindungi (Opsional)
+            </label>
+            <input id="whitelistInputStep2" type="text" class="input"
+              placeholder="Contoh: kampus, kantor, keluarga, crypto" />
+          </div>
+
+          <button id="verifyBtn" type="submit" class="btn-primary">
+            <span>Verifikasi &amp; Pindai Akun</span>
+          </button>
+        </form>
+      </section>
+
+      <!-- STEP 3: REVIEW TARGETS -->
+      <section id="step3Card" class="card hidden">
+        <div class="account-bar">
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="dot-online"></span>
+              <h2 style="font-size:17px;font-weight:700;color:#fff;">
+                Akun: <span id="userDisplayName" style="color:#24A1DE"></span>
+              </h2>
+            </div>
+            <p style="font-size:12px;color:#A1A1AA;margin-top:2px;">
+              Hapus centang pada grup/channel/bot yang masih ingin Anda simpan.
+            </p>
+          </div>
+          <button type="button" class="btn-secondary" onclick="cancelAndLogout()">Keluar &amp; Batal</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="stat-card">
+            <div class="label"><span>Target Ditemukan</span><span style="color:#F87171">🗑</span></div>
+            <div id="targetCountNum" class="value mono">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label"><span>Dilindungi (Aman)</span><span style="color:#34D399">🛡</span></div>
+            <div id="protectedCountNum" class="value mono">0</div>
+          </div>
+        </div>
+
+        <div class="pill-tabs">
+          <button id="tabTargets" type="button" class="pill-tab active" onclick="switchReviewTab('targets')">Target Dihapus</button>
+          <button id="tabProtected" type="button" class="pill-tab" onclick="switchReviewTab('protected')">Daftar Dilindungi</button>
+        </div>
+
+        <div id="targetsPanel" style="display:flex;flex-direction:column;gap:10px;">
+          <div class="list-toolbar">
+            <input id="targetSearch" type="text" class="input" style="padding:7px 11px;font-size:12.5px;"
+              placeholder="Cari grup, channel, atau bot..." oninput="renderTargets()" />
+            <div style="display:flex;gap:6px;flex-shrink:0;">
+              <button type="button" class="btn-secondary" onclick="toggleAll(true)">Pilih Semua</button>
+              <button type="button" class="btn-secondary" onclick="toggleAll(false)">Hapus Centang</button>
+            </div>
+          </div>
+          <div id="targetsList" class="items-box scroll-area"></div>
+        </div>
+
+        <div id="protectedPanel" class="hidden" style="display:flex;flex-direction:column;gap:8px;">
+          <p style="font-size:12px;color:#A1A1AA;">Kontak HP, grup whitelist, dan chat pribadi berikut aman 100%:</p>
+          <div id="protectedList" class="items-box scroll-area"></div>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;flex-direction:column;gap:12px;">
+          <label class="check-row">
+            <input id="autoLogoutCheck" type="checkbox" checked />
+            <span>Otomatis logout sesi CleanGram dari Telegram Devices setelah selesai</span>
+          </label>
+          <button id="startCleanBtn" type="button" class="btn-danger" onclick="askCleanConfirm()">
+            <span id="startCleanText">Bersihkan Target Terpilih</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- STEP 4: PROGRESS & SUMMARY -->
+      <section id="step4Card" class="card hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+          <div>
+            <h2 id="cleanTitle" style="font-size:17px;font-weight:700;color:#fff;">Membersihkan Akun Telegram...</h2>
+            <p id="cleanSub" style="font-size:12px;color:#A1A1AA;margin-top:2px;">Harap tunggu hingga seluruh target selesai diproses.</p>
+          </div>
+          <span id="cleanPct" class="mono" style="font-size:18px;font-weight:700;color:#38BDF8;">0%</span>
+        </div>
+
+        <div class="progress-track">
+          <div id="cleanProgressBar" class="progress-fill"></div>
+        </div>
+
+        <div id="liveLog" class="log-box mono scroll-area"></div>
+
+        <div id="runningControls" style="display:flex;justify-content:flex-start;">
+          <button id="stopBtn" type="button" class="btn-secondary" onclick="requestStopCleaning()">Hentikan Proses</button>
+        </div>
+
+        <div id="donePanel" class="hidden" style="display:flex;flex-direction:column;gap:12px;">
+          <div class="summary-ok">
+            <div id="doneHeadline" style="font-size:13.5px;font-weight:700;color:#34D399;">✓ Pembersihan Selesai</div>
+            <p id="doneStats" style="font-size:12.5px;color:#E4E4E7;margin-top:3px;"></p>
+          </div>
+          <div class="tip-box">
+            <strong style="color:#F4F4F5">Tips Anti-Spam Telegram:</strong>
+            Buka <em>Settings ➔ Privacy &amp; Security ➔ Groups &amp; Channels</em> ➔ ubah ke <strong style="color:#fff">My Contacts</strong>.
+          </div>
+          <button type="button" class="btn-primary" onclick="resetAll()">Selesai &amp; Kembali ke Awal</button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Custom Dark Confirm Modal -->
+  <div id="confirmModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h3 style="font-size:16px;font-weight:700;color:#fff;">Konfirmasi Pembersihan</h3>
+      <p id="confirmModalText" style="font-size:13px;color:#D4D4D8;line-height:1.55;"></p>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button type="button" class="btn-secondary" onclick="closeCleanConfirm()">Batal</button>
+        <button type="button" class="btn-danger" style="width:auto;padding:9px 16px;" onclick="confirmAndStartClean()">Ya, Bersihkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Watermark Footer -->
+  <footer>
+    <span>CleanGram Open Source • Keluar Tanpa Blokir</span>
+    <div>
+      Built by
+      <button type="button" class="link-btn mono" style="color:#E4E4E7;font-weight:600" onclick="openExternal('https://github.com/BenedichtusRW')">ben_dev</button>
+    </div>
+  </footer>
+
+  <script>
+    let qrPollTimer = null;
+    let scannedTargets = [];
+    let scannedProtected = [];
+    let selectedIds = new Set();
+
+    function api() {
+      if (!window.pywebview || !window.pywebview.api) {
+        throw new Error('Bridge Desktop belum siap, silakan tunggu sebentar.');
+      }
+      return window.pywebview.api;
+    }
+
+    async function callApi(method, ...args) {
+      const res = await api()[method](...args);
+      if (!res || !res.ok) {
+        throw new Error((res && res.error) || 'Terjadi kesalahan sistem.');
+      }
+      return res.data;
+    }
+
+    function openExternal(url) {
+      if (window.pywebview && window.pywebview.api) {
+        window.pywebview.api.open_url(url);
+      }
+    }
+
+    function showError(msg) {
+      document.getElementById('errorText').textContent = msg;
+      document.getElementById('errorBanner').classList.remove('hidden');
+      document.getElementById('mainScroll').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    function hideError() {
+      document.getElementById('errorBanner').classList.add('hidden');
+    }
+
+    function updateModeIndicator() {
+      const isLocal = document.getElementById('useLocalToggle').checked;
+      const pill = document.getElementById('headerModePill');
+      const txt = document.getElementById('headerModeText');
+      if (isLocal) {
+        pill.classList.add('local');
+        txt.textContent = '🔒 Mode 100% Lokal (API Sendiri)';
+      } else {
+        pill.classList.remove('local');
+        txt.textContent = '⚡ Mode Cepat (Tanpa API)';
+      }
+    }
+
+    function openAdvancedSection() {
+      setStep(1);
+      const det = document.getElementById('advancedDetails');
+      det.open = true;
+      det.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function onModeToggleChanged() {
+      updateModeIndicator();
+      const useLocal = document.getElementById('useLocalToggle').checked;
+      const apiId = document.getElementById('apiIdInput').value.trim();
+      const apiHash = document.getElementById('apiHashInput').value.trim();
+      const persist = document.getElementById('persistLocalCheck').checked;
+      try {
+        await callApi('save_advanced_config', useLocal, apiId, apiHash, persist);
+      } catch (_) {}
+    }
+
+    async function saveAdvancedPrefs() {
+      hideError();
+      const useLocal = document.getElementById('useLocalToggle').checked;
+      const apiId = document.getElementById('apiIdInput').value.trim();
+      const apiHash = document.getElementById('apiHashInput').value.trim();
+      const persist = document.getElementById('persistLocalCheck').checked;
+      if (useLocal && (!/^\d+$/.test(apiId) || apiHash.length < 10)) {
+        showError('Untuk Mode 100% Lokal, masukkan API ID (angka) dan API Hash yang valid dari my.telegram.org.');
+        return;
+      }
+      await callApi('save_advanced_config', useLocal, apiId, apiHash, persist);
+      updateModeIndicator();
+      document.getElementById('advancedDetails').open = false;
+    }
+
+    async function resetToCloudMode() {
+      hideError();
+      document.getElementById('useLocalToggle').checked = false;
+      document.getElementById('apiIdInput').value = '';
+      document.getElementById('apiHashInput').value = '';
+      await callApi('reset_advanced_config');
+      updateModeIndicator();
+    }
+
+    function setStep(stepNum) {
+      hideError();
+      const ws = document.getElementById('workspace');
+      ws.classList.toggle('wide', stepNum === 3 || stepNum === 4);
+
+      [1, 2, 3, 4].forEach((n) => {
+        document.getElementById(`step${n}Card`).classList.toggle('hidden', n !== stepNum);
+        const ind = document.getElementById(`stepInd${n}`);
+        ind.classList.remove('active', 'done');
+        if (n < stepNum) ind.classList.add('done');
+        else if (n === stepNum) ind.classList.add('active');
+      });
+      document.getElementById('mainScroll').scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function switchAuth(method) {
+      hideError();
+      const isQr = method === 'qr';
+      document.getElementById('qrPanel').classList.toggle('hidden', !isQr);
+      document.getElementById('otpForm').classList.toggle('hidden', isQr);
+      document.getElementById('tabQrBtn').classList.toggle('active', isQr);
+      document.getElementById('tabOtpBtn').classList.toggle('active', !isQr);
+      if (!isQr) stopQrTimer();
+    }
+
+    function stopQrTimer() {
+      if (qrPollTimer) {
+        clearTimeout(qrPollTimer);
+        qrPollTimer = null;
+      }
+    }
+
+    async function cancelQr() {
+      stopQrTimer();
+      document.getElementById('qrActiveWrap').classList.add('hidden');
+      document.getElementById('qrStartWrap').classList.remove('hidden');
+      try { await callApi('logout'); } catch (_) {}
+    }
+
+    function getAuthModeArgs() {
+      return [
+        document.getElementById('useLocalToggle').checked,
+        document.getElementById('apiIdInput').value.trim(),
+        document.getElementById('apiHashInput').value.trim()
+      ];
+    }
+
+    async function startQrLogin() {
+      hideError();
+      stopQrTimer();
+      const btn = document.getElementById('qrStartBtn');
+      btn.disabled = true;
+      btn.querySelector('span').textContent = 'Membuat QR Code...';
+
+      try {
+        const [useLocal, apiId, apiHash] = getAuthModeArgs();
+        const data = await callApi('start_qr', useLocal, apiId, apiHash);
+        document.getElementById('qrImg').src = data.qr_data_uri;
+        document.getElementById('qrStatusText').textContent = 'Menunggu Anda scan dari Telegram HP...';
+        document.getElementById('qrStartWrap').classList.add('hidden');
+        document.getElementById('qrActiveWrap').classList.remove('hidden');
+        qrPollTimer = setTimeout(pollQrLoop, 2200);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Buat QR Code Telegram';
+      }
+    }
+
+    async function pollQrLoop() {
+      if (document.getElementById('qrActiveWrap').classList.contains('hidden')) return;
+      const wl = document.getElementById('whitelistInputStep1').value.trim();
+      try {
+        const res = await callApi('poll_qr', wl);
+        if (res.status === '2fa_required') {
+          stopQrTimer();
+          document.getElementById('qrActiveWrap').classList.add('hidden');
+          document.getElementById('qrStartWrap').classList.remove('hidden');
+          document.getElementById('whitelistInputStep2').value = wl;
+          document.getElementById('step2SubText').textContent = 'QR berhasil di-scan! Masukkan Password 2FA akun Anda.';
+          document.getElementById('otpFieldWrap').classList.add('hidden');
+          document.getElementById('twoFaWrap').classList.remove('hidden');
+          setStep(2);
+          document.getElementById('twoFaInput').focus();
+          return;
+        }
+        if (res.status === 'scanned') {
+          stopQrTimer();
+          document.getElementById('qrActiveWrap').classList.add('hidden');
+          document.getElementById('qrStartWrap').classList.remove('hidden');
+          applyScanData(res);
+          return;
+        }
+        if (res.qr_data_uri) {
+          document.getElementById('qrImg').src = res.qr_data_uri;
+        }
+        qrPollTimer = setTimeout(pollQrLoop, 2200);
+      } catch (err) {
+        await cancelQr();
+        showError(err.message);
+      }
+    }
+
+    async function sendOtp(e) {
+      e.preventDefault();
+      hideError();
+      const phone = document.getElementById('phoneInput').value.trim();
+      const btn = document.getElementById('sendOtpBtn');
+      btn.disabled = true;
+      btn.querySelector('span').textContent = 'Mengirim OTP...';
+
+      try {
+        const [useLocal, apiId, apiHash] = getAuthModeArgs();
+        const data = await callApi('send_otp', phone, useLocal, apiId, apiHash);
+        const sub = document.getElementById('step2SubText');
+        sub.textContent = `Kode OTP dikirim ke ${data.phone} melalui ${data.delivery}.`;
+        document.getElementById('whitelistInputStep2').value =
+          document.getElementById('whitelistInputStep1').value.trim();
+        document.getElementById('otpFieldWrap').classList.remove('hidden');
+        document.getElementById('twoFaWrap').classList.add('hidden');
+        document.getElementById('otpInput').value = '';
+        document.getElementById('twoFaInput').value = '';
+        setStep(2);
+        document.getElementById('otpInput').focus();
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Lanjut & Kirim OTP';
+      }
+    }
+
+    async function submitVerify(e) {
+      e.preventDefault();
+      hideError();
+      const btn = document.getElementById('verifyBtn');
+      const code = document.getElementById('otpInput').value.trim();
+      const password = document.getElementById('twoFaInput').value;
+      const wl = document.getElementById('whitelistInputStep2').value.trim();
+
+      btn.disabled = true;
+      btn.querySelector('span').textContent = 'Memeriksa & Memindai Akun...';
+      try {
+        const res = await callApi('verify_scan', code, password, wl);
+        if (res.status === '2fa_required') {
+          document.getElementById('otpFieldWrap').classList.add('hidden');
+          document.getElementById('twoFaWrap').classList.remove('hidden');
+          document.getElementById('twoFaInput').focus();
+          return;
+        }
+        applyScanData(res);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Verifikasi & Pindai Akun';
+      }
+    }
+
+    function applyScanData(data) {
+      const u = data.user || {};
+      const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Pengguna';
+      document.getElementById('userDisplayName').textContent = u.username
+        ? `${fullName} (@${u.username})`
+        : fullName;
+
+      scannedTargets = data.targets || [];
+      scannedProtected = data.protected || [];
+      selectedIds = new Set(scannedTargets.map(t => t.id));
+
+      document.getElementById('targetCountNum').textContent = scannedTargets.length;
+      document.getElementById('protectedCountNum').textContent = scannedProtected.length;
+
+      switchReviewTab('targets');
+      renderTargets();
+      renderProtected();
+      setStep(3);
+    }
+
+    function switchReviewTab(tab) {
+      const isTargets = tab === 'targets';
+      document.getElementById('targetsPanel').classList.toggle('hidden', !isTargets);
+      document.getElementById('protectedPanel').classList.toggle('hidden', isTargets);
+      document.getElementById('tabTargets').classList.toggle('active', isTargets);
+      document.getElementById('tabProtected').classList.toggle('active', !isTargets);
+    }
+
+    function toggleAll(checked) {
+      if (checked) scannedTargets.forEach(t => selectedIds.add(t.id));
+      else selectedIds.clear();
+      renderTargets();
+    }
+
+    function updateCleanBtn() {
+      const cnt = selectedIds.size;
+      const btn = document.getElementById('startCleanBtn');
+      const txt = document.getElementById('startCleanText');
+      btn.disabled = cnt === 0;
+      txt.textContent = cnt > 0
+        ? `Bersihkan ${cnt} Target Terpilih Sekarang`
+        : 'Pilih Minimal 1 Target untuk Dibersihkan';
+    }
+
+    function renderTargets() {
+      const list = document.getElementById('targetsList');
+      const query = document.getElementById('targetSearch').value.trim().toLowerCase();
+      list.innerHTML = '';
+
+      const filtered = scannedTargets.filter(t =>
+        t.name.toLowerCase().includes(query) ||
+        (t.username && t.username.toLowerCase().includes(query)) ||
+        t.type.toLowerCase().includes(query)
+      );
+
+      if (filtered.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'text-align:center;padding:28px;font-size:12.5px;color:#71717A;';
+        empty.textContent = scannedTargets.length === 0
+          ? 'Akun Anda bersih! Tidak ada grup spam atau bot target ditemukan.'
+          : 'Tidak ada item yang cocok dengan pencarian.';
+        list.appendChild(empty);
+        updateCleanBtn();
+        return;
+      }
+
+      filtered.forEach(t => {
+        const row = document.createElement('label');
+        row.className = 'item-row clickable';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = selectedIds.has(t.id);
+        cb.onchange = () => {
+          if (cb.checked) selectedIds.add(t.id);
+          else selectedIds.delete(t.id);
+          updateCleanBtn();
+        };
+
+        const meta = document.createElement('div');
+        meta.className = 'item-meta';
+        const title = document.createElement('div');
+        title.className = 'item-title';
+        title.textContent = t.name;
+        const sub = document.createElement('div');
+        sub.className = 'item-sub';
+        sub.textContent = t.username ? `@${t.username}` : 'Tanpa username';
+        meta.appendChild(title);
+        meta.appendChild(sub);
+
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.textContent = t.type;
+
+        row.appendChild(cb);
+        row.appendChild(meta);
+        row.appendChild(tag);
+        list.appendChild(row);
+      });
+      updateCleanBtn();
+    }
+
+    function renderProtected() {
+      const list = document.getElementById('protectedList');
+      list.innerHTML = '';
+      if (scannedProtected.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'text-align:center;padding:24px;font-size:12.5px;color:#71717A;';
+        empty.textContent = 'Tidak ada item dilindungi.';
+        list.appendChild(empty);
+        return;
+      }
+      scannedProtected.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+
+        const meta = document.createElement('div');
+        meta.className = 'item-meta';
+        const title = document.createElement('div');
+        title.className = 'item-title';
+        title.textContent = p.name;
+        const sub = document.createElement('div');
+        sub.className = 'item-sub';
+        sub.textContent = p.username ? `@${p.username}` : 'Dilindungi otomatis';
+        meta.appendChild(title);
+        meta.appendChild(sub);
+
+        const tag = document.createElement('span');
+        tag.className = 'tag safe';
+        tag.textContent = p.reason;
+
+        row.appendChild(meta);
+        row.appendChild(tag);
+        list.appendChild(row);
+      });
+    }
+
+    function askCleanConfirm() {
+      if (selectedIds.size === 0) return;
+      document.getElementById('confirmModalText').textContent =
+        `Yakin ingin KELUAR & HAPUS RIWAYAT ${selectedIds.size} grup / saluran / bot terpilih? Kontak HP & item dilindungi 100% aman (tidak ada yang diblokir).`;
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeCleanConfirm() {
+      document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    async function confirmAndStartClean() {
+      closeCleanConfirm();
+      const ids = Array.from(selectedIds);
+      const autoLogout = document.getElementById('autoLogoutCheck').checked;
+
+      setStep(4);
+      document.getElementById('cleanProgressBar').style.width = '0%';
+      document.getElementById('cleanPct').textContent = '0%';
+      document.getElementById('cleanTitle').textContent = 'Membersihkan Akun Telegram...';
+      document.getElementById('cleanSub').textContent = 'Harap tunggu hingga seluruh target selesai diproses.';
+      document.getElementById('runningControls').classList.remove('hidden');
+      document.getElementById('stopBtn').disabled = false;
+      document.getElementById('stopBtn').textContent = 'Hentikan Proses';
+      document.getElementById('donePanel').classList.add('hidden');
+      document.getElementById('liveLog').innerHTML = '';
+
+      appendLog(`[MEMULAI] Memproses ${ids.length} target (mode aman tanpa blokir)...`, '#38BDF8');
+
+      try {
+        await callApi('start_cleaning', ids, autoLogout);
+      } catch (err) {
+        showError(err.message);
+        document.getElementById('runningControls').classList.add('hidden');
+        document.getElementById('donePanel').classList.remove('hidden');
+      }
+    }
+
+    function appendLog(text, color = '#D4D4D8') {
+      const box = document.getElementById('liveLog');
+      const row = document.createElement('div');
+      row.style.color = color;
+      row.textContent = text;
+      box.appendChild(row);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    async function requestStopCleaning() {
+      const btn = document.getElementById('stopBtn');
+      btn.disabled = true;
+      btn.textContent = 'Menghentikan...';
+      appendLog('⏸ Meminta penghentian proses dengan aman...', '#FBBF24');
+      try { await callApi('cancel_cleaning'); } catch (_) {}
+    }
+
+    window.__onCleanEvent = function(ev) {
+      if (!ev || !ev.event) return;
+      if (ev.event === 'progress') {
+        const pct = Math.round((ev.processed / Math.max(ev.total, 1)) * 100);
+        document.getElementById('cleanProgressBar').style.width = `${pct}%`;
+        document.getElementById('cleanPct').textContent = `${pct}%`;
+        if (ev.status === 'ok') {
+          appendLog(`✓ [${ev.processed}/${ev.total}] ${ev.name} (${ev.type}) — ${ev.message}`, '#34D399');
+        } else {
+          appendLog(`✗ [${ev.processed}/${ev.total}] ${ev.name} (${ev.type}) — ${ev.message}`, '#FBBF24');
+        }
+      } else if (ev.event === 'wait') {
+        appendLog(`⏳ [Limit Telegram] Menunggu ${ev.seconds} detik sebelum lanjut...`, '#FCD34D');
+      } else if (ev.event === 'done') {
+        document.getElementById('cleanProgressBar').style.width = '100%';
+        document.getElementById('cleanPct').textContent = '100%';
+        document.getElementById('runningControls').classList.add('hidden');
+        document.getElementById('donePanel').classList.remove('hidden');
+
+        const title = ev.cancelled ? 'Pembersihan Dibatalkan Pengguna' : 'Pembersihan Selesai Total!';
+        document.getElementById('cleanTitle').textContent = title;
+        document.getElementById('cleanSub').textContent = ev.logged_out
+          ? 'Akun bersih & sesi CleanGram di-logout permanen dari Telegram.'
+          : 'Sesi koneksi telah ditutup.';
+        document.getElementById('doneHeadline').textContent = ev.cancelled ? `⚠ ${title}` : `✓ ${title}`;
+        document.getElementById('doneStats').textContent =
+          `Berhasil dibersihkan: ${ev.sukses} item` +
+          (ev.gagal > 0 ? ` • Dilewati: ${ev.gagal} item.` : '.');
+        appendLog(`\n=== ${title} (Sukses: ${ev.sukses}, Dilewati: ${ev.gagal}) ===`, '#38BDF8');
+      } else if (ev.event === 'error') {
+        document.getElementById('runningControls').classList.add('hidden');
+        document.getElementById('donePanel').classList.remove('hidden');
+        document.getElementById('cleanTitle').textContent = 'Terjadi Kesalahan';
+        appendLog(`❌ ERROR: ${ev.message}`, '#F87171');
+        showError(ev.message);
+      }
+    };
+
+    async function backToStep1() {
+      stopQrTimer();
+      try { await callApi('logout'); } catch (_) {}
+      setStep(1);
+    }
+
+    async function cancelAndLogout() {
+      stopQrTimer();
+      try { await callApi('logout'); } catch (_) {}
+      resetAll();
+    }
+
+    function resetAll() {
+      stopQrTimer();
+      scannedTargets = [];
+      scannedProtected = [];
+      selectedIds.clear();
+      document.getElementById('otpInput').value = '';
+      document.getElementById('twoFaInput').value = '';
+      document.getElementById('targetSearch').value = '';
+      setStep(1);
+    }
+
+    async function initDesktopApp() {
+      try {
+        const cfg = await callApi('get_init_config');
+        document.getElementById('useLocalToggle').checked = Boolean(cfg.use_local_mode);
+        document.getElementById('apiIdInput').value = cfg.api_id || '';
+        document.getElementById('apiHashInput').value = cfg.api_hash || '';
+        updateModeIndicator();
+      } catch (err) {
+        updateModeIndicator();
+      }
+    }
+
+    if (window.pywebview && window.pywebview.api) {
+      initDesktopApp();
+    } else {
+      window.addEventListener('pywebviewready', initDesktopApp);
+    }
+  </script>
+</body>
+</html>

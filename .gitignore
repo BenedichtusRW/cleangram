@@ -1,0 +1,19 @@
+# Telegram Sessions & Credentials (SANGAT PENTING: JANGAN DI-PUSH KE GITHUB)
+*.session
+*.session-journal
+config_telegram.json
+.env
+
+# Python Cache & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Editor & OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

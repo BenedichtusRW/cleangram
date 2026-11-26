@@ -54,6 +54,7 @@ Tampilan modern *Obsidian Dark* dengan 2 mode fleksibel: **Mode Cepat (Default)*
 
 ### Download Langsung (Tanpa Install Python):
 👉 **[Download CleanGram.exe (Windows)](https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.exe)** *(lihat semua rilis di [GitHub Releases](https://github.com/BenedichtusRW/cleangram/releases))*
+* **Syarat Minimum:** Windows 10 / 11 (64-bit).
 
 ### Menjalankan dari Source:
 ```bash
@@ -73,6 +74,7 @@ Aplikasi Android native dengan ikon **CleanGram**, login via **Nomor HP & OTP** 
 
 ### Download Langsung:
 👉 **[Download CleanGram.apk (Android)](https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.apk)** *(atau pilih rilis di [GitHub Releases](https://github.com/BenedichtusRW/cleangram/releases))*
+* **Syarat Minimum:** **Android 7.0 (Nougat) ke atas** (APK Universal: mendukung semua HP Android 64-bit, 32-bit, serta emulator x86_64). Untuk **Android 6 ke bawah** atau **iPhone/iPad (iOS)**, silakan langsung pakai versi **Website / PWA**.
 
 ### Build dari Source:
 ```bash

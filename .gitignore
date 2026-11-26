@@ -17,3 +17,8 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# PyInstaller build artifacts (CleanGram.exe diunggah ke GitHub Releases)
+build/
+dist/
+*.spec

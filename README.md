@@ -48,7 +48,23 @@ Repository ini sudah dikonfigurasi *stateless* dan dilengkapi [`web/vercel.json`
 
 ---
 
-## ⚙️ Opsi 2: Cara Manual via Terminal / CLI (`clean_telegram_groups.py`)
+## 💻 Opsi 2: Aplikasi Desktop Windows (`desktop/` — 100% Lokal & Offline)
+
+Cocok untuk membersihkan ratusan/ribuan grup sekaligus tanpa batas server, atau bagi pengguna yang ingin 100% koneksi langsung dari PC ke Telegram.
+
+### Menjalankan dari Source:
+```bash
+cd desktop
+pip install -r requirements.txt
+python app.py
+```
+
+### Build Menjadi `CleanGram.exe` Standalone:
+Jalankan script [`desktop/build_exe.bat`](desktop/build_exe.bat) untuk menghasilkan file `desktop/dist/CleanGram.exe` (tidak butuh install Python saat dijalankan).
+
+---
+
+## ⚙️ Opsi 3: Cara Manual via Terminal / CLI (`clean_telegram_groups.py`)
 
 ### Persyaratan:
 1. **Python 3** (Laptop atau HP Android via *Pydroid 3* / *Termux*).
@@ -71,3 +87,7 @@ python clean_telegram_groups.py
 ## 💡 Tips Pencegahan (Biar Gak Dimasukin Grup Spam Lagi)
 Buka aplikasi Telegram di HP Anda:
 > **Settings (Pengaturan)** ➔ **Privacy and Security (Privasi)** ➔ **Groups & Channels** ➔ Ubah menjadi **`My Contacts (Kontak Saya)`**.
+
+---
+
+<p align="center">Built by <a href="https://github.com/BenedichtusRW"><strong>ben_dev</strong></a></p>

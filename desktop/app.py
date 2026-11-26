@@ -7,7 +7,7 @@ Mendukung Login Scan QR Telegram, Nomor HP + OTP, Verifikasi 2FA, dan Review Tar
 import sys
 import webbrowser
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import qrcode
 import ttkbootstrap as ttk
@@ -549,7 +549,8 @@ class CleanGramDesktopApp:
         qr = qrcode.QRCode(border=2, box_size=6)
         qr.add_data(qr_url)
         qr.make(fit=True)
-        pil_img = qr.make_image(fill_color="black", back_color="white").convert("RGB")
+        raw_img = cast(Image.Image, qr.make_image(fill_color="black", back_color="white").get_image())
+        pil_img = raw_img.convert("RGB")
         pil_img = pil_img.resize((210, 210), Image.Resampling.NEAREST)
         self._qr_photo = ImageTk.PhotoImage(pil_img)
         self.qr_img_lbl.configure(image=self._qr_photo)

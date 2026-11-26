@@ -88,21 +88,38 @@ Hasil compile APK berada di `mobile/build/app/outputs/flutter-apk/app-release.ap
 
 ## ⚙️ Opsi 4: Cara Manual via Terminal / CLI (`clean_telegram_groups.py`)
 
-### Persyaratan:
-1. **Python 3** (Laptop atau HP Android via *Pydroid 3* / *Termux*).
-2. Install library Telethon:
+Cocok untuk membersihkan ribuan grup secara *direct* 100% lokal (bebas batas waktu server), bisa dijalankan di **Laptop (Windows / Mac / Linux)** maupun **HP Android**.
+
+### Persiapan Awal (Wajib):
+Dapatkan **API ID** & **API HASH** gratis terlebih dahulu dari [https://my.telegram.org](https://my.telegram.org) ➔ **API development tools**.
+
+### A. Menjalankan di Laptop / PC (Windows, MacBook, Linux):
+1. Pastikan **Python 3** sudah terpasang.
+2. Install library Telethon dan jalankan script:
    ```bash
    pip install telethon
+   python clean_telegram_groups.py
    ```
-3. Dapatkan **API ID** & **API HASH** gratis dari [https://my.telegram.org](https://my.telegram.org) ➔ **API development tools**.
+   *(Di macOS/Linux gunakan `pip3` dan `python3` jika `python` belum tersedia).*
 
-### Cara Menjalankan:
-```bash
-python clean_telegram_groups.py
-```
-1. Masukkan **API ID**, **API HASH**, Nomor HP Telegram, dan kode OTP yang masuk.
-2. Tambahkan kata kunci grup penting Anda (misal: `kampus, kantor, keluarga, bisnis`).
-3. Periksa daftar **Dilindungi** & **Target**, lalu ketik **`y`** dan **Enter**.
+### B. Menjalankan di HP Android (Tanpa PC):
+Pilih salah satu aplikasi gratis berikut:
+* **Via Termux (Disarankan — install dari [F-Droid](https://f-droid.org/packages/com.termux/) / GitHub, bukan Play Store):**
+  ```bash
+  pkg update && pkg install python git -y
+  pip install telethon
+  git clone https://github.com/BenedichtusRW/cleangram.git
+  cd cleangram
+  python clean_telegram_groups.py
+  ```
+* **Via Pydroid 3 (Alternatif Praktis di Play Store):**
+  1. Buka menu **Pip** di Pydroid 3 ➔ ketik **`telethon`** ➔ **Install**.
+  2. Download file `clean_telegram_groups.py` dari repository ini, buka di Pydroid 3, lalu tekan tombol **Play (▶)**.
+
+### Alur Penggunaan di Terminal:
+1. Masukkan **API ID**, **API HASH** *(otomatis disimpan lokal di `config_telegram.json`)*, **Nomor HP Telegram**, kode **OTP**, dan password **2FA** jika aktif.
+2. Tambahkan kata kunci grup penting Anda (misal: `kampus, kantor, keluarga, bisnis`). Kontak HP otomatis aman 100%.
+3. Periksa daftar **Dilindungi** & **Target**, lalu ketik **`y`** dan **Enter** untuk mulai membersihkan.
 
 ---
 

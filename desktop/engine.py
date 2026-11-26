@@ -117,7 +117,7 @@ class DesktopHybridEngine:
     def __init__(self, api_base: str = DEFAULT_API_BASE) -> None:
         self.api_base = api_base.rstrip("/")
         self._http = requests.Session()
-        self._http.headers.update({"Content-Type": "application/json", "User-Agent": "CleanGramDesktop/2.0"})
+        self._http.headers.update({"Content-Type": "application/json", "User-Agent": "CleanGramDesktop/1.0"})
 
         self._loop = asyncio.new_event_loop()
         self._thread = threading.Thread(target=self._run_event_loop, daemon=True)
@@ -183,7 +183,7 @@ class DesktopHybridEngine:
             receive_updates=False,
             device_model="CleanGram Desktop",
             system_version="Windows 11",
-            app_version="2.0.0",
+            app_version="1.0.0",
             lang_code="en",
             system_lang_code="en",
         )

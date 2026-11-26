@@ -36,6 +36,15 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 
+@app.middleware("http")
+async def add_static_cache_headers(request: Request, call_next):
+    """Menambahkan header Cache-Control untuk file statis agar hemat CPU server."""
+    response = await call_next(request)
+    if request.url.path.startswith("/static/"):
+        response.headers.setdefault("Cache-Control", "public, max-age=86400, stale-while-revalidate=604800")
+    return response
+
+
 class SendCodeRequest(BaseModel):
     phone: str = Field(..., min_length=6, max_length=25)
     custom_api_id: Optional[int] = None

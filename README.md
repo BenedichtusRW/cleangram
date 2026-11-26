@@ -6,7 +6,11 @@
 
 <p align="center">
   <strong>Pembersih Massal Grup Spam, Saluran Tak Dikenal, & Bot Spam Telegram</strong><br/>
-  Tersedia dalam versi <strong>Website & Mobile PWA (FastAPI)</strong> serta <strong>Script CLI Python</strong> dengan perlindungan kontak otomatis.
+  Tersedia dalam versi <strong>Website & Mobile PWA</strong> (<a href="https://cleangram-alpha.vercel.app"><strong>cleangram-alpha.vercel.app</strong></a>) serta <strong>Script CLI Python</strong> dengan perlindungan kontak otomatis.
+</p>
+
+<p align="center">
+  <a href="https://cleangram-alpha.vercel.app">🌐 <strong>Buka CleanGram Web Live (Gratis &amp; Tanpa Install)</strong></a>
 </p>
 
 ---

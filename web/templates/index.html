@@ -381,6 +381,14 @@
     let selectedSet = new Set();
     let scannedProtected = [];
     let deferredPrompt = null;
+    let isCleaningActive = false;
+
+    window.addEventListener('beforeunload', (e) => {
+      if (isCleaningActive) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -701,11 +709,12 @@
       let totalSukses = 0;
       let totalGagal = 0;
       let cursor = 0;
-      const BATCH_SIZE = 8;
+      const BATCH_SIZE = 15;
 
+      isCleaningActive = true;
       setStep(4);
       document.getElementById('liveLog').innerHTML = '';
-      appendLog(`[MEMULAI] Memproses ${total} target dalam mode aman...`, 'text-[#24A1DE]');
+      appendLog(`[MEMULAI] Memproses ${total} target dalam mode aman (jangan tutup tab ini)...`, 'text-[#24A1DE]');
 
       try {
         while (cursor < total) {
@@ -773,6 +782,8 @@
       } catch (err) {
         showError(err.message);
         appendLog(`❌ Koneksi terputus: ${err.message}`, 'text-red-400');
+      } finally {
+        isCleaningActive = false;
       }
     }
   </script>

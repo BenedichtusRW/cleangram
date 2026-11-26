@@ -81,9 +81,9 @@ async def service_worker():
     )
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
-    """Endpoint kesehatan untuk uptime monitor Render.com."""
+    """Endpoint kesehatan untuk uptime monitor Render.com (GET & HEAD)."""
     return {"status": "ok", "service": "cleangram-web"}
 
 

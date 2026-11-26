@@ -15,6 +15,7 @@ env/
 # Editor & OS files
 .vscode/
 .idea/
+pyrefly.toml
 .DS_Store
 Thumbs.db
 

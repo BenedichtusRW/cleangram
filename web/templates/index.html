@@ -139,12 +139,12 @@
 
         <details class="rounded-xl bg-[#09090B] border border-zinc-800/80 px-3.5 py-2.5 text-xs text-zinc-400">
           <summary class="cursor-pointer font-medium text-zinc-400 hover:text-zinc-200 select-none flex items-center justify-between">
-            <span>Gunakan API ID / Hash sendiri (Opsional)</span>
+            <span>Mode Developer: Pakai API ID Sendiri (Pengguna Biasa Lewati)</span>
             <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
           </summary>
           <div class="mt-3 space-y-2.5 pt-2.5 border-t border-zinc-800/80">
             <p class="text-[11px] text-zinc-500">
-              Kosongkan untuk memakai API sistem, atau isi API pribadi dari <a href="https://my.telegram.org" target="_blank" class="text-[#24A1DE] hover:underline">my.telegram.org</a>.
+              Pengguna biasa biarkan kosong (otomatis memakai API server). Isi hanya jika ingin pakai API pribadi dari <a href="https://my.telegram.org" target="_blank" class="text-[#24A1DE] hover:underline">my.telegram.org</a>.
             </p>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <input id="customApiId" type="number" placeholder="API ID (Angka)" class="rounded-lg bg-[#111114] border border-zinc-800 px-3 py-2 text-white text-xs outline-none focus:border-[#24A1DE]" />
@@ -376,7 +376,7 @@
   <script>
     lucide.createIcons();
 
-    let currentFlowId = null;
+    let currentFlowToken = null;
     let scannedTargets = [];
     let selectedSet = new Set();
     let scannedProtected = [];
@@ -434,14 +434,14 @@
     }
 
     function resetToStep1() {
-      if (currentFlowId) {
+      if (currentFlowToken) {
         fetch('/api/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ flow_id: currentFlowId })
+          body: JSON.stringify({ flow_token: currentFlowToken })
         }).catch(() => {});
       }
-      currentFlowId = null;
+      currentFlowToken = null;
       document.getElementById('twoFaWrap').classList.add('hidden');
       document.getElementById('otpFieldWrap').classList.remove('hidden');
       document.getElementById('otpInput').value = '';
@@ -450,11 +450,11 @@
     }
 
     async function cancelAndLogout() {
-      if (currentFlowId) {
+      if (currentFlowToken) {
         await fetch('/api/logout', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ flow_id: currentFlowId })
+          body: JSON.stringify({ flow_token: currentFlowToken })
         }).catch(() => {});
       }
       window.location.reload();
@@ -484,7 +484,7 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Gagal mengirim OTP.');
 
-        currentFlowId = data.flow_id;
+        currentFlowToken = data.flow_token;
         document.getElementById('displayPhone').textContent = data.phone;
         setStep(2);
       } catch (err) {
@@ -512,7 +512,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            flow_id: currentFlowId,
+            flow_token: currentFlowToken,
             code: code || null,
             password: password || null,
             whitelist
@@ -522,12 +522,14 @@
         if (!res.ok) throw new Error(data.detail || 'Gagal verifikasi OTP.');
 
         if (data.status === '2fa_required') {
+          if (data.flow_token) currentFlowToken = data.flow_token;
           document.getElementById('otpFieldWrap').classList.add('hidden');
           document.getElementById('twoFaWrap').classList.remove('hidden');
           document.getElementById('twoFaInput').focus();
           return;
         }
 
+        currentFlowToken = data.flow_token;
         const fullName = `${data.user.first_name} ${data.user.last_name}`.trim();
         document.getElementById('userDisplayName').textContent = data.user.username
           ? `${fullName} (@${data.user.username})`
@@ -690,76 +692,84 @@
     }
 
     async function startCleaning() {
-      const ids = Array.from(selectedSet);
-      if (ids.length === 0) return;
+      const queue = Array.from(selectedSet);
+      if (queue.length === 0) return;
 
       const autoLogout = document.getElementById('autoLogoutCheck').checked;
+      const total = queue.length;
+      let processed = 0;
+      let totalSukses = 0;
+      let totalGagal = 0;
+      let cursor = 0;
+      const BATCH_SIZE = 8;
+
       setStep(4);
       document.getElementById('liveLog').innerHTML = '';
-      appendLog(`[MEMULAI] Memproses ${ids.length} target...`, 'text-[#24A1DE]');
+      appendLog(`[MEMULAI] Memproses ${total} target dalam mode aman...`, 'text-[#24A1DE]');
 
       try {
-        const response = await fetch('/api/clean', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            flow_id: currentFlowId,
-            selected_ids: ids,
-            auto_logout: autoLogout
-          })
-        });
+        while (cursor < total) {
+          const batchIds = queue.slice(cursor, cursor + BATCH_SIZE);
+          const isLastBatch = (cursor + batchIds.length) >= total;
 
-        if (!response.ok) {
-          const err = await response.json();
-          throw new Error(err.detail || 'Gagal memulai pembersihan.');
-        }
+          const res = await fetch('/api/clean-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              flow_token: currentFlowToken,
+              target_ids: batchIds,
+              is_last_batch: isLastBatch,
+              auto_logout: autoLogout
+            })
+          });
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || 'Gagal memproses batch pembersihan.');
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+          for (const item of data.results || []) {
+            processed++;
+            const pct = Math.round((processed / total) * 100);
+            document.getElementById('cleanProgressBar').style.width = `${pct}%`;
+            document.getElementById('cleanPct').textContent = `${pct}%`;
 
-          buffer += decoder.decode(value, { stream: true });
-          const parts = buffer.split('\n\n');
-          buffer = parts.pop();
-
-          for (const part of parts) {
-            if (!part.startsWith('data: ')) continue;
-            const evt = JSON.parse(part.slice(6));
-
-            if (evt.event === 'progress') {
-              const pct = Math.round((evt.current / evt.total) * 100);
-              document.getElementById('cleanProgressBar').style.width = `${pct}%`;
-              document.getElementById('cleanPct').textContent = `${pct}%`;
-
-              if (evt.status === 'ok') {
-                appendLog(`✓ [${evt.current}/${evt.total}] Keluar & Hapus: ${evt.name} (${evt.type})`, 'text-emerald-400');
-              } else {
-                appendLog(`✗ [${evt.current}/${evt.total}] Dilewati: ${evt.name} — ${evt.message}`, 'text-amber-400');
-              }
-            } else if (evt.event === 'floodwait') {
-              appendLog(`⏳ [Limit Telegram] Menunggu ${evt.seconds} detik untuk ${evt.name}...`, 'text-amber-300');
-            } else if (evt.event === 'done') {
-              document.getElementById('cleanProgressBar').style.width = '100%';
-              document.getElementById('cleanPct').textContent = '100%';
-              document.getElementById('cleanStatusTitle').textContent = 'Pembersihan Selesai';
-              document.getElementById('cleanStatusSub').textContent = 'Akun Telegram Anda telah dibersihkan.';
-              document.getElementById('cleanStatusIcon').innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>';
-              document.getElementById('cleanStatusIcon').className = 'w-9 h-9 rounded-lg bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center';
-              document.getElementById('doneStatsText').textContent =
-                `Berhasil keluar & menghapus riwayat ${evt.sukses} item` +
-                (evt.gagal > 0 ? ` (${evt.gagal} item dilewati).` : '.');
-              document.getElementById('doneSummary').classList.remove('hidden');
-              currentFlowId = null;
-              lucide.createIcons();
-            } else if (evt.event === 'error') {
-              appendLog(`❌ Error: ${evt.message}`, 'text-red-400');
+            if (item.status === 'ok') {
+              totalSukses++;
+              appendLog(`✓ [${processed}/${total}] Keluar & Hapus: ${item.name} (${item.type})`, 'text-emerald-400');
+            } else {
+              totalGagal++;
+              appendLog(`✗ [${processed}/${total}] Dilewati: ${item.name} — ${item.message}`, 'text-amber-400');
             }
           }
+
+          cursor += (data.results || []).length;
+
+          if (data.floodwait_seconds && data.floodwait_seconds > 0) {
+            const waitSec = data.floodwait_seconds;
+            appendLog(`⏳ [Limit Telegram] Menunggu ${waitSec} detik sebelum melanjutkan sisa target...`, 'text-amber-300');
+            await new Promise((resolve) => setTimeout(resolve, waitSec * 1000));
+            continue;
+          }
+
+          if ((data.results || []).length === 0) {
+            // Hindari infinite loop jika ada kegagalan tak terduga
+            cursor += batchIds.length;
+          }
         }
+
+        document.getElementById('cleanProgressBar').style.width = '100%';
+        document.getElementById('cleanPct').textContent = '100%';
+        document.getElementById('cleanStatusTitle').textContent = 'Pembersihan Selesai';
+        document.getElementById('cleanStatusSub').textContent = autoLogout
+          ? 'Akun bersih & sesi CleanGram sudah di-logout permanen.'
+          : 'Akun Telegram Anda telah dibersihkan.';
+        document.getElementById('cleanStatusIcon').innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>';
+        document.getElementById('cleanStatusIcon').className = 'w-9 h-9 rounded-lg bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center';
+        document.getElementById('doneStatsText').textContent =
+          `Berhasil keluar & menghapus riwayat ${totalSukses} item` +
+          (totalGagal > 0 ? ` (${totalGagal} item dilewati).` : '.');
+        document.getElementById('doneSummary').classList.remove('hidden');
+        currentFlowToken = null;
+        lucide.createIcons();
       } catch (err) {
         showError(err.message);
         appendLog(`❌ Koneksi terputus: ${err.message}`, 'text-red-400');

@@ -33,13 +33,14 @@ uvicorn main:app --reload
 ```
 Buka browser lalu akses: `http://127.0.0.1:8000`
 
-### Deploy Gratis ke Render.com:
-Repository ini sudah dilengkapi file [`render.yaml`](render.yaml).
-1. Hubungkan repository ini di dashboard **Render.com** (Blueprint / Web Service).
+### Deploy Gratis Tanpa Kartu Kredit ke Vercel:
+Repository ini sudah dikonfigurasi *stateless* dan dilengkapi [`web/vercel.json`](web/vercel.json).
+1. Import repository ini di dashboard **[Vercel.com](https://vercel.com)** (akun Hobby Free).
 2. Atur **Root Directory** ke `web`.
-3. Tambahkan Environment Variables di Render:
+3. Tambahkan Environment Variables di Vercel:
    * `TELEGRAM_API_ID`
    * `TELEGRAM_API_HASH`
+4. Klik **Deploy** — web langsung online tanpa *auto-sleep*!
 
 ---
 

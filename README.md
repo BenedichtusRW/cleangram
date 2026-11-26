@@ -74,7 +74,7 @@ Aplikasi Android native dengan ikon **CleanGram**, login via **Nomor HP & OTP** 
 
 ### Download Langsung:
 👉 **[Download CleanGram.apk (Android)](https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.apk)** *(atau pilih rilis di [GitHub Releases](https://github.com/BenedichtusRW/cleangram/releases))*
-* **Syarat Minimum:** **Android 7.0 (Nougat) ke atas** (APK Universal: mendukung semua HP Android 64-bit, 32-bit, serta emulator x86_64). Untuk **Android 6 ke bawah** atau **iPhone/iPad (iOS)**, silakan langsung pakai versi **Website / PWA**.
+* **Syarat Minimum:** **Android 7.0 (Nougat) ke atas — 64-bit (`arm64-v8a`)**. Untuk HP Android 32-bit, Android 6 ke bawah, atau iPhone/iPad (iOS), silakan langsung pakai versi **Website / PWA**.
 
 ### Build dari Source:
 ```bash

@@ -139,16 +139,18 @@
       <!-- PANEL A: QR CODE LOGIN -->
       <div id="qrLoginPanel" class="space-y-4">
         <div>
-          <label for="qrWhitelistInput" class="block text-xs font-medium text-zinc-300 mb-1">
-            Whitelist Grup Penting (Opsional)
+          <label for="qrWhitelistInput" class="block text-xs font-medium text-zinc-200 mb-1">
+            Grup / Channel / Bot yang <span class="text-emerald-400">DILINDUNGI (Jangan Dihapus)</span>
           </label>
+          <p class="text-[11px] text-zinc-400 mb-2 leading-relaxed">
+            Ketik <strong class="text-zinc-200">sebagian kata / nama</strong> grup penting Anda agar otomatis masuk daftar aman (pisahkan koma). Contoh: ketik <code class="text-zinc-200 bg-zinc-800 px-1 rounded">keluarga</code> maka grup <em>"Keluarga Besar"</em> aman. Kontak HP otomatis aman. Boleh dikosongkan (bisa dipilih manual nanti).
+          </p>
           <input
             id="qrWhitelistInput"
             type="text"
-            placeholder="kampus, kantor, keluarga, kerjaan"
+            placeholder="Contoh: kampus, kantor, keluarga, crypto, kerjaan"
             class="w-full rounded-xl bg-[#09090B] border border-zinc-800 focus:border-[#24A1DE] focus:ring-1 focus:ring-[#24A1DE] px-3.5 py-2.5 text-white placeholder-zinc-600 text-sm outline-none transition"
           />
-          <p class="text-[11px] text-zinc-500 mt-1">Kontak HP & chat pribadi otomatis aman. Pisahkan kata kunci dengan koma.</p>
         </div>
 
         <div id="qrStartWrap">
@@ -291,16 +293,16 @@
         </div>
 
         <div>
-          <label for="whitelistInput" class="block text-xs font-medium text-zinc-300 mb-1">
-            Whitelist Grup Penting (Opsional)
+          <label for="whitelistInput" class="block text-xs font-medium text-zinc-200 mb-1">
+            Grup / Channel / Bot yang <span class="text-emerald-400">DILINDUNGI (Jangan Dihapus)</span>
           </label>
-          <p class="text-[11px] text-zinc-500 mb-1.5">
-            Kontak HP & chat pribadi otomatis aman. Pisahkan kata kunci grup penting dengan koma:
+          <p class="text-[11px] text-zinc-400 mb-2 leading-relaxed">
+            Ketik <strong class="text-zinc-200">sebagian kata / nama</strong> grup penting Anda agar otomatis diamankan (pisahkan koma). Contoh: ketik <code class="text-zinc-200 bg-zinc-800 px-1 rounded">keluarga</code> maka grup <em>"Keluarga Besar"</em> aman. Kontak HP otomatis aman. Boleh dikosongkan (nanti bisa pilih centang manual).
           </p>
           <input
             id="whitelistInput"
             type="text"
-            placeholder="kampus, kantor, keluarga, kerjaan"
+            placeholder="Contoh: kampus, kantor, keluarga, crypto, kerjaan"
             class="w-full rounded-xl bg-[#09090B] border border-zinc-800 focus:border-[#24A1DE] focus:ring-1 focus:ring-[#24A1DE] px-3.5 py-2.5 text-white placeholder-zinc-600 text-sm outline-none transition"
           />
         </div>

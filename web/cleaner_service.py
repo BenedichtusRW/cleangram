@@ -20,6 +20,7 @@ from typing import Any, Optional
 import pyaes
 from dotenv import load_dotenv
 from telethon import TelegramClient, functions
+from telethon import types as tl_types
 from telethon.errors import (
     FloodWaitError,
     PasswordHashInvalidError,
@@ -160,9 +161,11 @@ def _build_client(session_str: str, api_id: int, api_hash: str) -> TelegramClien
         api_id,
         api_hash,
         receive_updates=False,
-        device_model="CleanGram Web",
-        system_version="Cloud",
-        app_version="1.1.0",
+        device_model="Desktop",
+        system_version="Windows 11",
+        app_version="5.9.0",
+        lang_code="en",
+        system_lang_code="en",
     )
 
 
@@ -230,6 +233,16 @@ async def start_login(
         except Exception:
             pass
 
+    code_type = type(sent.type).__name__
+    if "App" in code_type:
+        delivery = "Aplikasi Telegram (chat resmi dari Telegram)"
+    elif "Sms" in code_type:
+        delivery = "SMS ke nomor HP Anda"
+    elif "Email" in code_type:
+        delivery = "Email akun Telegram Anda"
+    else:
+        delivery = f"Telegram ({code_type})"
+
     state = {
         "s": session_str,
         "p": normalized,
@@ -240,7 +253,7 @@ async def start_login(
         "2fa": False,
         "peers": {},
     }
-    return {"flow_token": encrypt_state(state), "phone": normalized}
+    return {"flow_token": encrypt_state(state), "phone": normalized, "delivery": delivery}
 
 
 async def _authenticate_client(
@@ -348,6 +361,134 @@ def classify_dialogs(dialogs: list[Any], whitelist_raw: str) -> tuple[list[dict[
     return protected, targets, peers
 
 
+async def _scan_authorized_client(
+    client: TelegramClient,
+    state: dict[str, Any],
+    whitelist_raw: str = "",
+) -> dict[str, Any]:
+    """Memindai akun yang sudah login, menyimpan peta peer, dan mengembalikan respon siap pakai."""
+    me = await client.get_me()
+    user_info = {
+        "first_name": getattr(me, "first_name", "") or "Pengguna",
+        "last_name": getattr(me, "last_name", "") or "",
+        "username": getattr(me, "username", None),
+        "phone": state.get("p") or getattr(me, "phone", None) or "",
+    }
+
+    dialogs = await client.get_dialogs()
+    protected, targets, peers = classify_dialogs(dialogs, whitelist_raw)
+
+    state["s"] = client.session.save()
+    state["peers"] = peers
+
+    return {
+        "status": "scanned",
+        "flow_token": encrypt_state(state),
+        "user": user_info,
+        "protected_count": len(protected),
+        "target_count": len(targets),
+        "protected": protected,
+        "targets": targets,
+    }
+
+
+def _encode_qr_url(token_bytes: bytes) -> str:
+    """Mengubah token biner Telegram menjadi URI tg://login?token=..."""
+    b64 = base64.urlsafe_b64encode(token_bytes).decode("ascii").rstrip("=")
+    return f"tg://login?token={b64}"
+
+
+async def qr_start(
+    custom_api_id: Optional[int] = None,
+    custom_api_hash: Optional[str] = None,
+) -> dict[str, str]:
+    """Memulai login berbasis QR Code Telegram (tanpa perlu SMS/OTP)."""
+    api_id, api_hash = resolve_credentials(custom_api_id, custom_api_hash)
+    client = _build_client("", api_id, api_hash)
+
+    try:
+        await client.connect()
+        resp = await client(functions.auth.ExportLoginTokenRequest(api_id, api_hash, []))
+        session_str = client.session.save()
+    except FloodWaitError as exc:
+        raise ValueError(f"Terlalu banyak permintaan QR. Tunggu {exc.seconds} detik.") from exc
+    except Exception as exc:
+        raise ValueError(f"Gagal membuat QR Code Telegram: {exc}") from exc
+    finally:
+        try:
+            await client.disconnect()
+        except Exception:
+            pass
+
+    if not hasattr(resp, "token"):
+        raise ValueError("Respon QR Telegram tidak terduga. Silakan coba lagi.")
+
+    state = {
+        "s": session_str,
+        "p": "QR Login",
+        "h": "",
+        "aid": api_id,
+        "ah": api_hash,
+        "auth": False,
+        "2fa": False,
+        "peers": {},
+    }
+    return {
+        "flow_token": encrypt_state(state),
+        "qr_url": _encode_qr_url(resp.token),
+    }
+
+
+async def qr_check(flow_token: str, whitelist_raw: str = "") -> dict[str, Any]:
+    """Memeriksa status scan QR; jika sudah di-scan langsung memindai grup/kontak."""
+    state = decrypt_state(flow_token)
+    api_id = int(state["aid"])
+    api_hash = str(state["ah"])
+    client = _build_client(state["s"], api_id, api_hash)
+
+    try:
+        await client.connect()
+        try:
+            resp = await client(functions.auth.ExportLoginTokenRequest(api_id, api_hash, []))
+            if isinstance(resp, tl_types.auth.LoginTokenMigrateTo):
+                await client._switch_dc(resp.dc_id)
+                resp = await client(functions.auth.ImportLoginTokenRequest(resp.token))
+        except SessionPasswordNeededError:
+            state["2fa"] = True
+            state["s"] = client.session.save()
+            raise Require2FAError(encrypt_state(state))
+
+        if isinstance(resp, tl_types.auth.LoginTokenSuccess):
+            user = resp.authorization.user
+            await client._on_login(user)
+            state["auth"] = True
+            state["2fa"] = False
+            state["p"] = getattr(user, "phone", None) or "QR Login"
+            return await _scan_authorized_client(client, state, whitelist_raw=whitelist_raw)
+
+        if hasattr(resp, "token"):
+            state["s"] = client.session.save()
+            return {
+                "status": "pending",
+                "flow_token": encrypt_state(state),
+                "qr_url": _encode_qr_url(resp.token),
+            }
+
+        raise ValueError("Status QR tidak dikenali. Silakan buat ulang QR Code.")
+    except Require2FAError:
+        raise
+    except Exception as exc:
+        msg = str(exc)
+        if "EXPIRED" in msg.upper() or "INVALID" in msg.upper():
+            raise ValueError("QR Code sudah kedaluwarsa. Klik muat ulang QR.") from exc
+        raise ValueError(f"Gagal memeriksa status QR: {exc}") from exc
+    finally:
+        try:
+            await client.disconnect()
+        except Exception:
+            pass
+
+
 async def verify_and_scan(
     flow_token: str,
     code: Optional[str] = None,
@@ -363,34 +504,12 @@ async def verify_and_scan(
         if not state.get("auth"):
             await _authenticate_client(client, state, code=code, password=password)
 
-        me = await client.get_me()
-        user_info = {
-            "first_name": getattr(me, "first_name", "") or "Pengguna",
-            "last_name": getattr(me, "last_name", "") or "",
-            "username": getattr(me, "username", None),
-            "phone": state["p"],
-        }
-
-        dialogs = await client.get_dialogs()
-        protected, targets, peers = classify_dialogs(dialogs, whitelist_raw)
-
-        state["s"] = client.session.save()
-        state["peers"] = peers
+        return await _scan_authorized_client(client, state, whitelist_raw=whitelist_raw)
     finally:
         try:
             await client.disconnect()
         except Exception:
             pass
-
-    return {
-        "status": "scanned",
-        "flow_token": encrypt_state(state),
-        "user": user_info,
-        "protected_count": len(protected),
-        "target_count": len(targets),
-        "protected": protected,
-        "targets": targets,
-    }
 
 
 async def _clean_single_peer(client: TelegramClient, peer: Any, kind: str) -> None:

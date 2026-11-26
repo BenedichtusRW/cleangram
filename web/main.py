@@ -22,6 +22,8 @@ from cleaner_service import (  # noqa: E402
     Require2FAError,
     clean_batch,
     logout_flow,
+    qr_check,
+    qr_start,
     start_login,
     verify_and_scan,
 )
@@ -67,6 +69,16 @@ class CleanBatchRequest(BaseModel):
 
 class LogoutRequest(BaseModel):
     flow_token: str
+
+
+class QrStartRequest(BaseModel):
+    custom_api_id: Optional[int] = None
+    custom_api_hash: Optional[str] = None
+
+
+class QrCheckRequest(BaseModel):
+    flow_token: str
+    whitelist: str = ""
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -144,6 +156,37 @@ async def api_clean_batch(payload: CleanBatchRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Gagal membersihkan batch: {exc}") from exc
+
+
+@app.post("/api/qr-start")
+async def api_qr_start(payload: QrStartRequest):
+    """Membuat token QR Code login Telegram tanpa OTP/SMS."""
+    try:
+        return JSONResponse(
+            await qr_start(
+                custom_api_id=payload.custom_api_id,
+                custom_api_hash=payload.custom_api_hash,
+            )
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Kesalahan server QR: {exc}") from exc
+
+
+@app.post("/api/qr-check")
+async def api_qr_check(payload: QrCheckRequest):
+    """Mengecek apakah QR sudah di-scan pengguna; jika sukses langsung pindai akun."""
+    try:
+        return JSONResponse(
+            await qr_check(flow_token=payload.flow_token, whitelist_raw=payload.whitelist)
+        )
+    except Require2FAError as exc:
+        return JSONResponse({"status": "2fa_required", "flow_token": exc.flow_token})
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Gagal cek QR: {exc}") from exc
 
 
 @app.post("/api/logout")

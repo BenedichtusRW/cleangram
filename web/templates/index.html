@@ -20,6 +20,7 @@
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -109,8 +110,8 @@
       </button>
     </div>
 
-    <!-- STEP 1: PHONE LOGIN (Telegram-Authentic Style) -->
-    <section id="step1Card" class="rounded-2xl bg-[#111114] border border-zinc-800 p-6 sm:p-8 space-y-6">
+    <!-- STEP 1: QR CODE OR PHONE LOGIN -->
+    <section id="step1Card" class="rounded-2xl bg-[#111114] border border-zinc-800 p-6 sm:p-8 space-y-5">
       <div class="text-center space-y-3">
         <img src="/static/logo.png" alt="CleanGram" class="w-16 h-16 mx-auto rounded-2xl shadow-sm" />
         <div class="space-y-1">
@@ -121,7 +122,72 @@
         </div>
       </div>
 
-      <form id="phoneForm" class="space-y-4">
+      <!-- Method Switcher Tabs -->
+      <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#09090B] border border-zinc-800">
+        <button type="button" id="authTabQrBtn" onclick="switchAuthMethod('qr')"
+          class="py-2 px-3 rounded-lg text-xs font-semibold bg-zinc-800 text-white transition flex items-center justify-center gap-1.5">
+          <i data-lucide="qr-code" class="w-3.5 h-3.5 text-[#24A1DE]"></i>
+          <span>Scan QR (Cepat)</span>
+        </button>
+        <button type="button" id="authTabOtpBtn" onclick="switchAuthMethod('otp')"
+          class="py-2 px-3 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition flex items-center justify-center gap-1.5">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+          <span>Nomor HP & OTP</span>
+        </button>
+      </div>
+
+      <!-- PANEL A: QR CODE LOGIN -->
+      <div id="qrLoginPanel" class="space-y-4">
+        <div>
+          <label for="qrWhitelistInput" class="block text-xs font-medium text-zinc-300 mb-1">
+            Whitelist Grup Penting (Opsional)
+          </label>
+          <input
+            id="qrWhitelistInput"
+            type="text"
+            placeholder="kampus, kantor, keluarga, kerjaan"
+            class="w-full rounded-xl bg-[#09090B] border border-zinc-800 focus:border-[#24A1DE] focus:ring-1 focus:ring-[#24A1DE] px-3.5 py-2.5 text-white placeholder-zinc-600 text-sm outline-none transition"
+          />
+          <p class="text-[11px] text-zinc-500 mt-1">Kontak HP & chat pribadi otomatis aman. Pisahkan kata kunci dengan koma.</p>
+        </div>
+
+        <div id="qrStartWrap">
+          <button id="qrStartBtn" type="button" onclick="startQrLogin()"
+            class="w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-[#24A1DE] hover:bg-[#1D8FC7] active:scale-[0.99] flex items-center justify-center gap-2 transition">
+            <i data-lucide="qr-code" class="w-4 h-4"></i>
+            <span>Buat QR Code Telegram</span>
+          </button>
+          <p class="text-[11px] text-zinc-500 text-center mt-2">
+            Bebas kendala OTP tidak masuk dari server cloud — langsung scan lewat kamera Telegram HP.
+          </p>
+        </div>
+
+        <div id="qrActiveWrap" class="hidden space-y-4">
+          <div class="flex flex-col items-center gap-3 p-4 rounded-xl bg-[#09090B] border border-zinc-800">
+            <div id="qrBox" class="p-3 bg-white rounded-xl shadow-sm"></div>
+            <div class="flex items-center gap-2 text-xs text-[#24A1DE] font-medium">
+              <i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i>
+              <span id="qrStatusText">Menunggu Anda scan dari Telegram HP...</span>
+            </div>
+            <ol class="text-[11px] text-zinc-400 space-y-1 text-left w-full border-t border-zinc-800/80 pt-3">
+              <li>1. Buka aplikasi <strong class="text-zinc-200">Telegram</strong> di HP Anda.</li>
+              <li>2. Masuk ke <strong class="text-zinc-200">Settings ➔ Devices ➔ Link Desktop Device</strong>.</li>
+              <li>3. Arahkan kamera ke QR Code di atas.</li>
+            </ol>
+            <div class="flex items-center gap-2 w-full pt-1">
+              <button type="button" onclick="startQrLogin()" class="flex-1 py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-200 transition">
+                Buat Ulang QR
+              </button>
+              <button type="button" onclick="stopQrPolling()" class="py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-400 transition">
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL B: PHONE & OTP LOGIN -->
+      <form id="phoneForm" class="hidden space-y-4">
         <div>
           <label for="phoneInput" class="block text-xs font-medium text-zinc-300 mb-1.5">
             Nomor Telepon Telegram
@@ -134,24 +200,10 @@
             placeholder="+6281234567890 atau 081234567890"
             class="w-full rounded-xl bg-[#09090B] border border-zinc-800 focus:border-[#24A1DE] focus:ring-1 focus:ring-[#24A1DE] px-3.5 py-3 text-white placeholder-zinc-600 text-sm outline-none transition"
           />
-          <p class="text-[11px] text-zinc-500 mt-1.5">Kode OTP resmi akan dikirim ke aplikasi Telegram Anda.</p>
+          <p class="text-[11px] text-zinc-500 mt-1.5">
+            OTP dikirim ke aplikasi Telegram. Jika OTP tidak masuk, gunakan tab <strong class="text-zinc-300">Scan QR</strong>.
+          </p>
         </div>
-
-        <details class="rounded-xl bg-[#09090B] border border-zinc-800/80 px-3.5 py-2.5 text-xs text-zinc-400">
-          <summary class="cursor-pointer font-medium text-zinc-400 hover:text-zinc-200 select-none flex items-center justify-between">
-            <span>Mode Developer: Pakai API ID Sendiri (Pengguna Biasa Lewati)</span>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-          </summary>
-          <div class="mt-3 space-y-2.5 pt-2.5 border-t border-zinc-800/80">
-            <p class="text-[11px] text-zinc-500">
-              Pengguna biasa biarkan kosong (otomatis memakai API server). Isi hanya jika ingin pakai API pribadi dari <a href="https://my.telegram.org" target="_blank" class="text-[#24A1DE] hover:underline">my.telegram.org</a>.
-            </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <input id="customApiId" type="number" placeholder="API ID (Angka)" class="rounded-lg bg-[#111114] border border-zinc-800 px-3 py-2 text-white text-xs outline-none focus:border-[#24A1DE]" />
-              <input id="customApiHash" type="text" placeholder="API Hash" class="rounded-lg bg-[#111114] border border-zinc-800 px-3 py-2 text-white text-xs outline-none focus:border-[#24A1DE]" />
-            </div>
-          </div>
-        </details>
 
         <button id="sendCodeBtn" type="submit"
           class="w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-[#24A1DE] hover:bg-[#1D8FC7] active:scale-[0.99] flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
@@ -160,14 +212,31 @@
         </button>
       </form>
 
-      <div class="pt-4 border-t border-zinc-800/80 grid grid-cols-2 gap-2 text-[11px] text-zinc-500">
+      <!-- Shared Custom Developer API (Optional) -->
+      <details class="rounded-xl bg-[#09090B] border border-zinc-800/80 px-3.5 py-2.5 text-xs text-zinc-400">
+        <summary class="cursor-pointer font-medium text-zinc-400 hover:text-zinc-200 select-none flex items-center justify-between">
+          <span>Mode Developer: Pakai API ID Sendiri (Pengguna Biasa Lewati)</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+        </summary>
+        <div class="mt-3 space-y-2.5 pt-2.5 border-t border-zinc-800/80">
+          <p class="text-[11px] text-zinc-500">
+            Pengguna biasa biarkan kosong (otomatis memakai API server). Isi hanya jika ingin pakai API pribadi dari <a href="https://my.telegram.org" target="_blank" class="text-[#24A1DE] hover:underline">my.telegram.org</a>.
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <input id="customApiId" type="number" placeholder="API ID (Angka)" class="rounded-lg bg-[#111114] border border-zinc-800 px-3 py-2 text-white text-xs outline-none focus:border-[#24A1DE]" />
+            <input id="customApiHash" type="text" placeholder="API Hash" class="rounded-lg bg-[#111114] border border-zinc-800 px-3 py-2 text-white text-xs outline-none focus:border-[#24A1DE]" />
+          </div>
+        </div>
+      </details>
+
+      <div class="pt-3 border-t border-zinc-800/80 grid grid-cols-2 gap-2 text-[11px] text-zinc-500">
         <div class="flex items-center gap-1.5">
           <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
           <span>Kontak HP 100% aman</span>
         </div>
         <div class="flex items-center gap-1.5">
           <i data-lucide="lock" class="w-3.5 h-3.5 text-zinc-400 shrink-0"></i>
-          <span>Zero-storage di RAM</span>
+          <span>Zero-storage di server</span>
         </div>
         <div class="flex items-center gap-1.5">
           <i data-lucide="log-out" class="w-3.5 h-3.5 text-zinc-400 shrink-0"></i>
@@ -185,9 +254,12 @@
       <div class="flex items-start justify-between gap-2">
         <div>
           <h2 class="font-bold text-lg text-white">Verifikasi Kode & Filter</h2>
-          <p class="text-xs text-zinc-400 mt-0.5">Kode OTP dikirim ke <span id="displayPhone" class="text-white font-mono"></span></p>
+          <p id="step2SubText" class="text-xs text-zinc-400 mt-0.5">
+            Kode OTP dikirim ke <span id="displayPhone" class="text-white font-mono"></span>
+            (<span id="displayDelivery" class="text-[#24A1DE]">Aplikasi Telegram</span>)
+          </p>
         </div>
-        <button type="button" onclick="resetToStep1()" class="text-xs text-zinc-400 hover:text-white underline">Ganti Nomor</button>
+        <button type="button" onclick="resetToStep1()" class="text-xs text-zinc-400 hover:text-white underline">Kembali</button>
       </div>
 
       <form id="verifyForm" class="space-y-4">
@@ -441,7 +513,136 @@
       });
     }
 
+    let qrPollTimer = null;
+
+    function switchAuthMethod(method) {
+      hideError();
+      const isQr = method === 'qr';
+      document.getElementById('qrLoginPanel').classList.toggle('hidden', !isQr);
+      document.getElementById('phoneForm').classList.toggle('hidden', isQr);
+      document.getElementById('authTabQrBtn').className = isQr
+        ? 'py-2 px-3 rounded-lg text-xs font-semibold bg-zinc-800 text-white transition flex items-center justify-center gap-1.5'
+        : 'py-2 px-3 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition flex items-center justify-center gap-1.5';
+      document.getElementById('authTabOtpBtn').className = !isQr
+        ? 'py-2 px-3 rounded-lg text-xs font-semibold bg-zinc-800 text-white transition flex items-center justify-center gap-1.5'
+        : 'py-2 px-3 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition flex items-center justify-center gap-1.5';
+      if (!isQr) stopQrPolling();
+    }
+
+    function renderQrSvg(qrUrl) {
+      const qr = qrcode(0, 'M');
+      qr.addData(qrUrl);
+      qr.make();
+      document.getElementById('qrBox').innerHTML = qr.createSvgTag({ cellSize: 5, margin: 2 });
+    }
+
+    function stopQrPolling() {
+      if (qrPollTimer) {
+        clearTimeout(qrPollTimer);
+        qrPollTimer = null;
+      }
+      document.getElementById('qrActiveWrap').classList.add('hidden');
+      document.getElementById('qrStartWrap').classList.remove('hidden');
+    }
+
+    async function startQrLogin() {
+      hideError();
+      if (qrPollTimer) clearTimeout(qrPollTimer);
+      const btn = document.getElementById('qrStartBtn');
+      const customApiIdRaw = document.getElementById('customApiId').value.trim();
+      const customApiHash = document.getElementById('customApiHash').value.trim();
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>Membuat QR Code...</span>';
+
+      try {
+        const res = await fetch('/api/qr-start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            custom_api_id: customApiIdRaw ? Number(customApiIdRaw) : null,
+            custom_api_hash: customApiHash || null
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Gagal membuat QR Code.');
+
+        currentFlowToken = data.flow_token;
+        renderQrSvg(data.qr_url);
+        document.getElementById('qrStartWrap').classList.add('hidden');
+        document.getElementById('qrActiveWrap').classList.remove('hidden');
+        document.getElementById('qrStatusText').textContent = 'Menunggu Anda scan dari Telegram HP...';
+        qrPollTimer = setTimeout(pollQrStatus, 2500);
+      } catch (err) {
+        showError(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="qr-code" class="w-4 h-4"></i><span>Buat QR Code Telegram</span>';
+        lucide.createIcons();
+      }
+    }
+
+    async function pollQrStatus() {
+      if (!currentFlowToken || document.getElementById('qrActiveWrap').classList.contains('hidden')) return;
+      const whitelist = document.getElementById('qrWhitelistInput').value.trim();
+
+      try {
+        const res = await fetch('/api/qr-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ flow_token: currentFlowToken, whitelist })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'QR kedaluwarsa.');
+
+        if (data.status === '2fa_required') {
+          stopQrPolling();
+          currentFlowToken = data.flow_token;
+          document.getElementById('whitelistInput').value = whitelist;
+          document.getElementById('step2SubText').textContent = 'QR berhasil di-scan! Masukkan password Verifikasi 2 Langkah (2FA).';
+          document.getElementById('otpFieldWrap').classList.add('hidden');
+          document.getElementById('twoFaWrap').classList.remove('hidden');
+          setStep(2);
+          document.getElementById('twoFaInput').focus();
+          return;
+        }
+
+        if (data.status === 'scanned') {
+          stopQrPolling();
+          applyScanResult(data);
+          return;
+        }
+
+        if (data.flow_token) currentFlowToken = data.flow_token;
+        if (data.qr_url) renderQrSvg(data.qr_url);
+        qrPollTimer = setTimeout(pollQrStatus, 2500);
+      } catch (err) {
+        stopQrPolling();
+        showError(err.message);
+      }
+    }
+
+    function applyScanResult(data) {
+      currentFlowToken = data.flow_token;
+      const fullName = `${data.user.first_name} ${data.user.last_name}`.trim();
+      document.getElementById('userDisplayName').textContent = data.user.username
+        ? `${fullName} (@${data.user.username})`
+        : fullName;
+
+      scannedTargets = data.targets || [];
+      scannedProtected = data.protected || [];
+      selectedSet = new Set(scannedTargets.map(t => t.id));
+
+      document.getElementById('targetCountNum').textContent = scannedTargets.length;
+      document.getElementById('protectedCountNum').textContent = scannedProtected.length;
+
+      renderTargets();
+      renderProtected();
+      setStep(3);
+    }
+
     function resetToStep1() {
+      stopQrPolling();
       if (currentFlowToken) {
         fetch('/api/logout', {
           method: 'POST',
@@ -458,6 +659,7 @@
     }
 
     async function cancelAndLogout() {
+      stopQrPolling();
       if (currentFlowToken) {
         await fetch('/api/logout', {
           method: 'POST',
@@ -493,7 +695,13 @@
         if (!res.ok) throw new Error(data.detail || 'Gagal mengirim OTP.');
 
         currentFlowToken = data.flow_token;
-        document.getElementById('displayPhone').textContent = data.phone;
+        document.getElementById('step2SubText').innerHTML =
+          `Kode OTP dikirim ke <span class="text-white font-mono"></span> (<span class="text-[#24A1DE]"></span>)`;
+        const spans = document.getElementById('step2SubText').querySelectorAll('span');
+        spans[0].textContent = data.phone;
+        spans[1].textContent = data.delivery || 'Aplikasi Telegram';
+        document.getElementById('otpFieldWrap').classList.remove('hidden');
+        document.getElementById('twoFaWrap').classList.add('hidden');
         setStep(2);
       } catch (err) {
         showError(err.message);
@@ -537,22 +745,7 @@
           return;
         }
 
-        currentFlowToken = data.flow_token;
-        const fullName = `${data.user.first_name} ${data.user.last_name}`.trim();
-        document.getElementById('userDisplayName').textContent = data.user.username
-          ? `${fullName} (@${data.user.username})`
-          : fullName;
-
-        scannedTargets = data.targets || [];
-        scannedProtected = data.protected || [];
-        selectedSet = new Set(scannedTargets.map(t => t.id));
-
-        document.getElementById('targetCountNum').textContent = scannedTargets.length;
-        document.getElementById('protectedCountNum').textContent = scannedProtected.length;
-
-        renderTargets();
-        renderProtected();
-        setStep(3);
+        applyScanResult(data);
       } catch (err) {
         showError(err.message);
       } finally {

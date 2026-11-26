@@ -52,6 +52,9 @@ Repository ini sudah dikonfigurasi *stateless* dan dilengkapi [`web/vercel.json`
 
 Cocok untuk membersihkan ratusan/ribuan grup sekaligus tanpa batas server, atau bagi pengguna yang ingin 100% koneksi langsung dari PC ke Telegram.
 
+### Download Langsung (Tanpa Install Python):
+👉 **[Download CleanGram.exe (Windows)](https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.exe)** *(lihat semua rilis di [GitHub Releases](https://github.com/BenedichtusRW/cleangram/releases))*
+
 ### Menjalankan dari Source:
 ```bash
 cd desktop
@@ -64,7 +67,24 @@ Jalankan script [`desktop/build_exe.bat`](desktop/build_exe.bat) untuk menghasil
 
 ---
 
-## ⚙️ Opsi 3: Cara Manual via Terminal / CLI (`clean_telegram_groups.py`)
+## 📱 Opsi 3: Aplikasi Android Native (`mobile/` — Flutter)
+
+Aplikasi Android native dengan ikon **CleanGram**, login via **Nomor HP & OTP** atau **Scan QR**, serta pembersihan batch aman melalui API `https://cleangram-alpha.vercel.app` (*Zero Storage* & *Auto-Logout*).
+
+### Download Langsung:
+👉 **[Download CleanGram.apk (Android)](https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.apk)** *(atau pilih rilis di [GitHub Releases](https://github.com/BenedichtusRW/cleangram/releases))*
+
+### Build dari Source:
+```bash
+cd mobile
+flutter pub get
+flutter build apk --release
+```
+Hasil compile APK berada di `mobile/build/app/outputs/flutter-apk/app-release.apk`.
+
+---
+
+## ⚙️ Opsi 4: Cara Manual via Terminal / CLI (`clean_telegram_groups.py`)
 
 ### Persyaratan:
 1. **Python 3** (Laptop atau HP Android via *Pydroid 3* / *Termux*).

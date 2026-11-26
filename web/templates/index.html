@@ -73,10 +73,10 @@
       </a>
 
       <div class="flex items-center gap-2 shrink-0">
-        <button id="pwaInstallBtn" type="button"
+        <button id="pwaInstallBtn" type="button" title="Simpan website ini sebagai shortcut Web App (PWA)"
           class="hidden items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg bg-[#24A1DE]/15 hover:bg-[#24A1DE]/25 text-[#24A1DE] border border-[#24A1DE]/30 text-xs font-medium whitespace-nowrap shrink-0 transition">
-          <i data-lucide="download" class="w-3.5 h-3.5"></i>
-          <span>Install<span class="hidden sm:inline"> App</span></span>
+          <i data-lucide="plus-square" class="w-3.5 h-3.5"></i>
+          <span>Pasang<span class="hidden sm:inline"> Web</span></span>
         </button>
 
         <a href="https://github.com/BenedichtusRW/cleangram" target="_blank" rel="noopener noreferrer"
@@ -436,6 +436,49 @@
       </div>
     </section>
 
+    <!-- Download Native Apps & CLI Card (Visible on Step 1) -->
+    <section id="platformCards" class="rounded-2xl bg-[#111114] border border-zinc-800 p-4 sm:p-5 space-y-3">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h2 class="text-xs sm:text-sm font-semibold text-white">Gunakan di Perangkat Lain atau Mode Offline</h2>
+          <p class="text-[11px] text-zinc-500">Download aplikasi native tanpa batas kuota server atau jalankan script CLI.</p>
+        </div>
+        <a href="https://github.com/BenedichtusRW/cleangram/releases" target="_blank" rel="noopener noreferrer"
+           class="text-[11px] text-[#24A1DE] hover:underline whitespace-nowrap shrink-0">
+          Semua Rilis ↗
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <a href="https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.exe" target="_blank" rel="noopener noreferrer"
+           class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group">
+          <i data-lucide="monitor" class="w-4 h-4 text-[#24A1DE] shrink-0"></i>
+          <div class="min-w-0">
+            <div class="text-xs font-medium text-zinc-100 group-hover:text-white truncate">Windows (.exe)</div>
+            <div class="text-[10px] text-zinc-500 truncate">100% Lokal &amp; Tanpa Limit</div>
+          </div>
+        </a>
+
+        <a href="https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.apk" target="_blank" rel="noopener noreferrer"
+           class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group">
+          <i data-lucide="smartphone" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+          <div class="min-w-0">
+            <div class="text-xs font-medium text-zinc-100 group-hover:text-white truncate">Android (.apk)</div>
+            <div class="text-[10px] text-zinc-500 truncate">Aplikasi Native Flutter</div>
+          </div>
+        </a>
+
+        <a href="https://github.com/BenedichtusRW/cleangram#readme" target="_blank" rel="noopener noreferrer"
+           class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group">
+          <i data-lucide="terminal" class="w-4 h-4 text-zinc-400 shrink-0"></i>
+          <div class="min-w-0">
+            <div class="text-xs font-medium text-zinc-100 group-hover:text-white truncate">CLI Python (Manual)</div>
+            <div class="text-[10px] text-zinc-500 truncate">CMD / Termux / Pydroid</div>
+          </div>
+        </a>
+      </div>
+    </section>
+
   </main>
 
   <!-- Minimalist Footer -->
@@ -515,6 +558,9 @@
           ind.className = 'pb-2.5 text-center border-b-2 border-transparent text-zinc-600 transition';
         }
       });
+
+      const pCards = document.getElementById('platformCards');
+      if (pCards) pCards.classList.toggle('hidden', stepNum !== 1);
     }
 
     let qrPollTimer = null;

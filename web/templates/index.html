@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>CleanGram — Pembersih Massal Grup & Spam Telegram</title>
-  <meta name="description" content="Keluar dari puluhan/ratusan grup spam, saluran tak dikenal, dan bot spam Telegram secara otomatis sekali klik dengan proteksi kontak." />
-  <meta name="theme-color" content="#0F172A" />
+  <title>CleanGram — Pembersih Grup & Spam Telegram</title>
+  <meta name="description" content="Keluar dari grup spam, saluran tak dikenal, dan hapus chat bot nakal Telegram secara otomatis dengan perlindungan kontak." />
+  <meta name="theme-color" content="#09090B" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="CleanGram" />
@@ -14,6 +14,10 @@
   <link rel="apple-touch-icon" href="/static/icon-192.png" />
   <link rel="manifest" href="/static/manifest.json" />
 
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
@@ -21,9 +25,15 @@
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+          },
           colors: {
-            slatebg: '#090E1A',
-            cardbg: '#111827',
+            tg: {
+              DEFAULT: '#24A1DE',
+              hover: '#1D8FC7',
+            }
           }
         }
       }
@@ -31,177 +41,158 @@
   </script>
   <style>
     body {
-      background-color: #090E1A;
-      background-image:
-        radial-gradient(at 0% 0%, rgba(14, 165, 233, 0.14) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.12) 0px, transparent 50%);
+      background-color: #09090B;
+      color: #FAFAFA;
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-    .glass {
-      background: rgba(17, 24, 39, 0.78);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
     }
     .custom-scroll::-webkit-scrollbar {
       width: 6px;
     }
     .custom-scroll::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.5);
+      background: #09090B;
     }
     .custom-scroll::-webkit-scrollbar-thumb {
-      background: rgba(56, 189, 248, 0.35);
+      background: #27272A;
       border-radius: 9999px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #3F3F46;
     }
   </style>
 </head>
-<body class="min-h-screen text-slate-100 flex flex-col antialiased selection:bg-sky-500/30 selection:text-sky-200">
+<body class="min-h-screen bg-[#09090B] text-zinc-100 flex flex-col antialiased selection:bg-[#24A1DE]/30 selection:text-white">
 
-  <!-- Navbar -->
-  <header class="w-full border-b border-white/5 bg-slate-950/60 backdrop-blur-md sticky top-0 z-40">
-    <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-      <a href="/" class="flex items-center gap-3 group">
-        <img src="/static/logo.png" alt="Logo CleanGram" class="w-10 h-10 rounded-xl shadow-lg shadow-sky-500/20 group-hover:scale-105 transition-transform" />
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent">CleanGram</span>
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/25">WEB & PWA</span>
-          </div>
-          <p class="text-[11px] text-slate-400 hidden sm:block">Pembersih Massal Grup & Spam Telegram</p>
-        </div>
+  <!-- Minimalist Header -->
+  <header class="w-full border-b border-zinc-800/80 bg-[#09090B]/95 sticky top-0 z-40">
+    <div class="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+      <a href="/" class="flex items-center gap-2.5 group">
+        <img src="/static/logo.png" alt="Logo CleanGram" class="w-8 h-8 rounded-lg" />
+        <span class="font-semibold text-base tracking-tight text-white">CleanGram</span>
+        <span class="font-mono text-[11px] text-zinc-500 border border-zinc-800 rounded px-1.5 py-0.5">v1.0</span>
       </a>
 
       <div class="flex items-center gap-2">
-        <button id="pwaInstallBtn" type="button" class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-medium transition">
+        <button id="pwaInstallBtn" type="button"
+          class="hidden items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#24A1DE]/15 hover:bg-[#24A1DE]/25 text-[#24A1DE] border border-[#24A1DE]/30 text-xs font-medium transition">
           <i data-lucide="download" class="w-3.5 h-3.5"></i>
           <span>Install App</span>
         </button>
+
         <a href="https://github.com/BenedichtusRW/cleangram" target="_blank" rel="noopener noreferrer"
-           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 text-xs font-medium transition">
-          <i data-lucide="github" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Source Code</span>
+           class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-800 text-xs font-medium transition">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+          </svg>
+          <span>GitHub</span>
         </a>
       </div>
     </div>
   </header>
 
-  <!-- Main Content -->
-  <main class="flex-1 w-full max-w-4xl mx-auto px-4 py-6 sm:py-10 flex flex-col gap-6">
+  <!-- Main Workspace -->
+  <main id="mainContainer" class="flex-1 w-full max-w-xl mx-auto px-4 py-8 sm:py-12 flex flex-col justify-center gap-6 transition-all duration-200">
 
-    <!-- Hero & Trust Badges -->
-    <section class="text-center space-y-3">
-      <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
-        Bersihkan Akun Telegram dalam <span class="bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent">Hitungan Detik</span>
-      </h1>
-      <p class="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
-        Keluar dari puluhan grup spam, saluran tak dikenal, dan hapus chat bot nakal sekaligus—tanpa menyentuh kontak teman atau grup penting Anda.
-      </p>
-      <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Kontak HP 100% Aman
-        </span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-sky-500/10 text-sky-300 border border-sky-500/20">
-          <i data-lucide="lock" class="w-3.5 h-3.5"></i> Zero Storage & Auto Logout
-        </span>
-        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs bg-purple-500/10 text-purple-300 border border-purple-500/20">
-          <i data-lucide="ban" class="w-3.5 h-3.5"></i> Keluar Tanpa Blokir
-        </span>
-      </div>
-    </section>
-
-    <!-- Step Indicator -->
-    <nav aria-label="Progress" class="grid grid-cols-4 gap-2 text-center text-[11px] sm:text-xs font-medium">
-      <div id="stepInd1" class="py-2 px-1 rounded-xl border border-sky-500/40 bg-sky-500/15 text-sky-300 transition">1. Nomor HP</div>
-      <div id="stepInd2" class="py-2 px-1 rounded-xl border border-white/10 bg-white/5 text-slate-500 transition">2. OTP & Filter</div>
-      <div id="stepInd3" class="py-2 px-1 rounded-xl border border-white/10 bg-white/5 text-slate-500 transition">3. Pilih Target</div>
-      <div id="stepInd4" class="py-2 px-1 rounded-xl border border-white/10 bg-white/5 text-slate-500 transition">4. Bersihkan</div>
+    <!-- Step Navigation Bar -->
+    <nav aria-label="Progress" class="grid grid-cols-4 border-b border-zinc-800 text-[11px] sm:text-xs font-medium">
+      <div id="stepInd1" class="pb-2.5 text-center border-b-2 border-[#24A1DE] text-white transition">01 Nomor HP</div>
+      <div id="stepInd2" class="pb-2.5 text-center border-b-2 border-transparent text-zinc-500 transition">02 Verifikasi</div>
+      <div id="stepInd3" class="pb-2.5 text-center border-b-2 border-transparent text-zinc-500 transition">03 Target</div>
+      <div id="stepInd4" class="pb-2.5 text-center border-b-2 border-transparent text-zinc-500 transition">04 Selesai</div>
     </nav>
 
     <!-- Global Error Banner -->
-    <div id="errorBanner" class="hidden rounded-xl border border-rose-500/40 bg-rose-500/15 px-4 py-3 text-sm text-rose-200 flex items-start gap-3">
-      <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-400 shrink-0 mt-0.5"></i>
+    <div id="errorBanner" class="hidden rounded-xl border border-red-500/40 bg-red-950/40 px-4 py-3 text-xs sm:text-sm text-red-200 flex items-start gap-3">
+      <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 shrink-0 mt-0.5"></i>
       <div class="flex-1" id="errorText"></div>
-      <button type="button" onclick="hideError()" class="text-rose-300 hover:text-white">
+      <button type="button" onclick="hideError()" class="text-red-300 hover:text-white">
         <i data-lucide="x" class="w-4 h-4"></i>
       </button>
     </div>
 
-    <!-- STEP 1: PHONE INPUT -->
-    <section id="step1Card" class="glass rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
-          <i data-lucide="smartphone" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <h2 class="font-bold text-lg text-white">Masuk dengan Akun Telegram</h2>
-          <p class="text-xs text-slate-400">Kode OTP resmi akan dikirim langsung ke aplikasi Telegram Anda.</p>
+    <!-- STEP 1: PHONE LOGIN (Telegram-Authentic Style) -->
+    <section id="step1Card" class="rounded-2xl bg-[#111114] border border-zinc-800 p-6 sm:p-8 space-y-6">
+      <div class="text-center space-y-3">
+        <img src="/static/logo.png" alt="CleanGram" class="w-16 h-16 mx-auto rounded-2xl shadow-sm" />
+        <div class="space-y-1">
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">Masuk ke CleanGram</h1>
+          <p class="text-xs sm:text-sm text-zinc-400">
+            Bersihkan grup spam, channel asing, dan bot tanpa menyentuh kontak pribadi.
+          </p>
         </div>
       </div>
 
       <form id="phoneForm" class="space-y-4">
         <div>
-          <label for="phoneInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-            Nomor HP Telegram
+          <label for="phoneInput" class="block text-xs font-medium text-zinc-300 mb-1.5">
+            Nomor Telepon Telegram
           </label>
           <input
             id="phoneInput"
             type="tel"
             required
             autocomplete="tel"
-            placeholder="Contoh: +6281234567890 atau 081234567890"
-            class="w-full rounded-xl bg-slate-900/90 border border-white/10 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 px-4 py-3 text-white placeholder-slate-500 text-base outline-none transition"
+            placeholder="+6281234567890 atau 081234567890"
+            class="w-full rounded-xl bg-[#09090B] border border-zinc-800 focus:border-[#24A1DE] focus:ring-1 focus:ring-[#24A1DE] px-3.5 py-3 text-white placeholder-zinc-600 text-sm outline-none transition"
           />
+          <p class="text-[11px] text-zinc-500 mt-1.5">Kode OTP resmi akan dikirim ke aplikasi Telegram Anda.</p>
         </div>
 
-        <!-- Optional Custom API Accordion -->
-        <details class="rounded-xl bg-slate-900/60 border border-white/5 px-4 py-3 text-xs text-slate-400">
-          <summary class="cursor-pointer font-medium text-slate-300 hover:text-sky-300 select-none flex items-center gap-2">
-            <span>⚙️ Pengaturan Lanjutan: Gunakan API ID / Hash Sendiri (Opsional)</span>
+        <details class="rounded-xl bg-[#09090B] border border-zinc-800/80 px-3.5 py-2.5 text-xs text-zinc-400">
+          <summary class="cursor-pointer font-medium text-zinc-400 hover:text-zinc-200 select-none flex items-center justify-between">
+            <span>Gunakan API ID / Hash sendiri (Opsional)</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
           </summary>
-          <div class="mt-3 space-y-3 pt-3 border-t border-white/5">
-            <p class="text-[11px] text-slate-400">
-              Biarkan kosong untuk memakai API sistem. Isi hanya jika Anda ingin menggunakan API pribadi dari <a href="https://my.telegram.org" target="_blank" class="text-sky-400 underline">my.telegram.org</a>.
+          <div class="mt-3 space-y-2.5 pt-2.5 border-t border-zinc-800/80">
+            <p class="text-[11px] text-zinc-500">
+              Kosongkan untuk memakai API sistem, atau isi API pribadi dari <a href="https://my.telegram.org" target="_blank" class="text-[#24A1DE] hover:underline">my.telegram.org</a>.
             </p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input id="customApiId" type="number" placeholder="API ID (Angka)" class="rounded-lg bg-slate-950 border border-white/10 px-3 py-2 text-white text-xs outline-none focus:border-sky-500" />
-              <input id="customApiHash" type="text" placeholder="API Hash (Huruf & Angka)" class="rounded-lg bg-slate-950 border border-white/10 px-3 py-2 text-white text-xs outline-none focus:border-sky-500" />
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <input id="customApiId" type="number" placeholder="API ID (Angka)" class="rounded-lg bg-[#111114] border border-zinc-800 px-3 py-2 text-white text-xs outline-none focus:border-[#24A1DE]" />
+              <input id="customApiHash" type="text" placeholder="API Hash" class="rounded-lg bg-[#111114] border border-zinc-800 px-3 py-2 text-white text-xs outline-none focus:border-[#24A1DE]" />
             </div>
           </div>
         </details>
 
         <button id="sendCodeBtn" type="submit"
-          class="w-full py-3.5 px-5 rounded-xl font-bold text-white bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
-          <i data-lucide="send" class="w-4 h-4"></i>
-          <span>Kirim Kode OTP Telegram</span>
+          class="w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-[#24A1DE] hover:bg-[#1D8FC7] active:scale-[0.99] flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          <span>Lanjut & Kirim OTP</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
         </button>
       </form>
 
-      <div class="rounded-xl bg-slate-900/50 border border-white/5 p-3.5 text-xs text-slate-400 flex items-start gap-3">
-        <i data-lucide="info" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
-        <p>
-          <strong class="text-slate-200">Privasi Terjamin:</strong> CleanGram berjalan penuh di RAM sementara (Zero Storage). Begitu selesai membersihkan grup, sesi ini langsung di-<em>logout</em> permanen dari menu Telegram Devices Anda.
-        </p>
+      <div class="pt-4 border-t border-zinc-800/80 grid grid-cols-2 gap-2 text-[11px] text-zinc-500">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500 shrink-0"></i>
+          <span>Kontak HP 100% aman</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="lock" class="w-3.5 h-3.5 text-zinc-400 shrink-0"></i>
+          <span>Zero-storage di RAM</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="log-out" class="w-3.5 h-3.5 text-zinc-400 shrink-0"></i>
+          <span>Auto-logout setelah selesai</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="user-check" class="w-3.5 h-3.5 text-zinc-400 shrink-0"></i>
+          <span>Keluar tanpa blokir</span>
+        </div>
       </div>
     </section>
 
     <!-- STEP 2: OTP + 2FA + WHITELIST -->
-    <section id="step2Card" class="hidden glass rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <i data-lucide="key-round" class="w-5 h-5"></i>
-          </div>
-          <div>
-            <h2 class="font-bold text-lg text-white">Verifikasi & Whitelist</h2>
-            <p class="text-xs text-slate-400">Kode dikirim ke akun <span id="displayPhone" class="text-sky-300 font-semibold"></span></p>
-          </div>
+    <section id="step2Card" class="hidden rounded-2xl bg-[#111114] border border-zinc-800 p-6 sm:p-8 space-y-5">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h2 class="font-bold text-lg text-white">Verifikasi Kode & Filter</h2>
+          <p class="text-xs text-zinc-400 mt-0.5">Kode OTP dikirim ke <span id="displayPhone" class="text-white font-mono"></span></p>
         </div>
-        <button type="button" onclick="resetToStep1()" class="text-xs text-slate-400 hover:text-white underline">Ganti Nomor</button>
+        <button type="button" onclick="resetToStep1()" class="text-xs text-zinc-400 hover:text-white underline">Ganti Nomor</button>
       </div>
 
       <form id="verifyForm" class="space-y-4">
         <div id="otpFieldWrap">
-          <label for="otpInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+          <label for="otpInput" class="block text-xs font-medium text-zinc-300 mb-1.5">
             Kode OTP Telegram (5 Digit)
           </label>
           <input
@@ -209,180 +200,177 @@
             type="text"
             inputmode="numeric"
             autocomplete="one-time-code"
-            placeholder="Contoh: 12345"
-            class="w-full rounded-xl bg-slate-900/90 border border-white/10 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 px-4 py-3 text-white text-center tracking-[0.4em] font-mono text-xl placeholder:tracking-normal placeholder:text-sm placeholder:font-sans outline-none transition"
+            placeholder="•••••"
+            class="w-full rounded-xl bg-[#09090B] border border-zinc-800 focus:border-[#24A1DE] focus:ring-1 focus:ring-[#24A1DE] px-4 py-3 text-white text-center tracking-[0.5em] font-mono text-xl placeholder:tracking-[0.4em] outline-none transition"
           />
         </div>
 
-        <div id="twoFaWrap" class="hidden space-y-2 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-          <label for="twoFaInput" class="block text-xs font-semibold text-amber-300 flex items-center gap-1.5">
-            <i data-lucide="lock" class="w-4 h-4"></i>
-            Akun Anda Dilindungi Verifikasi 2 Langkah (2FA)
+        <div id="twoFaWrap" class="hidden space-y-2 p-3.5 rounded-xl bg-amber-950/30 border border-amber-500/30">
+          <label for="twoFaInput" class="block text-xs font-medium text-amber-300 flex items-center gap-1.5">
+            <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+            Masukkan Password Verifikasi 2 Langkah (2FA)
           </label>
           <input
             id="twoFaInput"
             type="password"
-            placeholder="Masukkan Password 2FA Telegram Anda"
-            class="w-full rounded-xl bg-slate-950 border border-amber-500/40 focus:border-amber-400 px-4 py-2.5 text-white text-sm outline-none"
+            placeholder="Password 2FA Telegram Anda"
+            class="w-full rounded-lg bg-[#09090B] border border-amber-500/40 focus:border-amber-400 px-3.5 py-2.5 text-white text-sm outline-none"
           />
         </div>
 
         <div>
-          <label for="whitelistInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-            Kata Kunci Whitelist / Grup Penting (Anti-Hapus)
+          <label for="whitelistInput" class="block text-xs font-medium text-zinc-300 mb-1">
+            Whitelist Grup Penting (Opsional)
           </label>
-          <p class="text-[11px] text-slate-400 mb-2">
-            Semua <strong>Kontak HP & Chat Pribadi otomatis aman</strong>. Tambahkan nama grup/channel penting yang tidak boleh disentuh (pisahkan dengan koma):
+          <p class="text-[11px] text-zinc-500 mb-1.5">
+            Kontak HP & chat pribadi otomatis aman. Pisahkan kata kunci grup penting dengan koma:
           </p>
           <input
             id="whitelistInput"
             type="text"
-            placeholder="Contoh: kampus, kantor, keluarga, crypto, alumni"
-            class="w-full rounded-xl bg-slate-900/90 border border-white/10 focus:border-sky-500 focus:ring-2 focus:ring-sky-500/30 px-4 py-3 text-white placeholder-slate-500 text-sm outline-none transition"
+            placeholder="kampus, kantor, keluarga, kerjaan"
+            class="w-full rounded-xl bg-[#09090B] border border-zinc-800 focus:border-[#24A1DE] focus:ring-1 focus:ring-[#24A1DE] px-3.5 py-2.5 text-white placeholder-zinc-600 text-sm outline-none transition"
           />
         </div>
 
         <button id="verifyBtn" type="submit"
-          class="w-full py-3.5 px-5 rounded-xl font-bold text-white bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50">
+          class="w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-[#24A1DE] hover:bg-[#1D8FC7] flex items-center justify-center gap-2 transition disabled:opacity-50">
           <i data-lucide="scan-search" class="w-4 h-4"></i>
-          <span>Verifikasi & Pindai Akun Sekarang</span>
+          <span>Verifikasi & Pindai Akun</span>
         </button>
       </form>
     </section>
 
     <!-- STEP 3: REVIEW & SELECT TARGETS -->
-    <section id="step3Card" class="hidden glass rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/10">
+    <section id="step3Card" class="hidden rounded-2xl bg-[#111114] border border-zinc-800 p-5 sm:p-7 space-y-5">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800">
         <div>
           <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <h2 class="font-bold text-lg text-white">Hasil Pemindaian: <span id="userDisplayName" class="text-sky-300"></span></h2>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <h2 class="font-bold text-base sm:text-lg text-white">Akun: <span id="userDisplayName" class="text-[#24A1DE]"></span></h2>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">Periksa kembali sebelum membersihkan. Anda dapat menghapus centang pada item yang ingin dipertahankan.</p>
+          <p class="text-xs text-zinc-400 mt-0.5">Hapus centang pada grup atau bot yang masih ingin Anda simpan.</p>
         </div>
         <button type="button" onclick="cancelAndLogout()"
-          class="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-white/5 hover:bg-rose-500/20 text-slate-300 hover:text-rose-300 border border-white/10 text-xs font-medium transition flex items-center gap-1.5">
+          class="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-red-950/60 text-zinc-300 hover:text-red-300 border border-zinc-800 text-xs font-medium transition flex items-center gap-1.5">
           <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
-          <span>Batalkan & Logout</span>
+          <span>Keluar & Batal</span>
         </button>
       </div>
 
-      <!-- Summary Counters -->
+      <!-- Summary Metrics -->
       <div class="grid grid-cols-2 gap-3">
-        <div class="rounded-xl bg-rose-500/10 border border-rose-500/25 p-3.5">
-          <div class="text-xs text-rose-300 font-medium flex items-center gap-1.5">
-            <i data-lucide="target" class="w-4 h-4"></i> Target Ditemukan
+        <div class="rounded-xl bg-[#09090B] border border-zinc-800 p-3.5">
+          <div class="text-xs text-zinc-400 flex items-center justify-between">
+            <span>Target Ditemukan</span>
+            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-red-400"></i>
           </div>
-          <div id="targetCountNum" class="text-2xl font-extrabold text-white mt-1">0</div>
+          <div id="targetCountNum" class="text-2xl font-bold font-mono text-white mt-1">0</div>
         </div>
-        <div class="rounded-xl bg-emerald-500/10 border border-emerald-500/25 p-3.5">
-          <div class="text-xs text-emerald-300 font-medium flex items-center gap-1.5">
-            <i data-lucide="shield-check" class="w-4 h-4"></i> Dilindungi (Aman)
+        <div class="rounded-xl bg-[#09090B] border border-zinc-800 p-3.5">
+          <div class="text-xs text-zinc-400 flex items-center justify-between">
+            <span>Dilindungi (Aman)</span>
+            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i>
           </div>
-          <div id="protectedCountNum" class="text-2xl font-extrabold text-white mt-1">0</div>
+          <div id="protectedCountNum" class="text-2xl font-bold font-mono text-white mt-1">0</div>
         </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="flex gap-2 border-b border-white/10 pb-2">
+      <!-- Filter Tabs -->
+      <div class="flex gap-1.5 p-1 rounded-xl bg-[#09090B] border border-zinc-800 w-fit">
         <button type="button" id="tabTargetBtn" onclick="switchTab('targets')"
-          class="px-4 py-2 rounded-lg text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30 transition">
-          🎯 Target Dihapus
+          class="px-3.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-white transition">
+          Target Dihapus
         </button>
         <button type="button" id="tabProtectedBtn" onclick="switchTab('protected')"
-          class="px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-slate-400 hover:text-white border border-transparent transition">
-          🛡️ Daftar Dilindungi
+          class="px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition">
+          Daftar Dilindungi
         </button>
       </div>
 
       <!-- Tab Content: Targets -->
       <div id="targetsPanel" class="space-y-3">
         <div class="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
-          <input id="targetSearch" type="text" oninput="renderTargets()" placeholder="Cari nama grup / channel / bot..."
-            class="w-full sm:w-64 rounded-lg bg-slate-900 border border-white/10 px-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-500" />
+          <input id="targetSearch" type="text" oninput="renderTargets()" placeholder="Cari grup, channel, atau bot..."
+            class="w-full sm:w-64 rounded-lg bg-[#09090B] border border-zinc-800 px-3 py-1.5 text-xs text-white placeholder-zinc-600 outline-none focus:border-[#24A1DE]" />
           <div class="flex items-center gap-2 text-xs">
-            <button type="button" onclick="toggleSelectAll(true)" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-sky-300">Pilih Semua</button>
-            <button type="button" onclick="toggleSelectAll(false)" class="px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-slate-400">Hapus Semua</button>
+            <button type="button" onclick="toggleSelectAll(true)" class="px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-200">Pilih Semua</button>
+            <button type="button" onclick="toggleSelectAll(false)" class="px-2.5 py-1 rounded-md bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400">Hapus Centang</button>
           </div>
         </div>
 
-        <div id="targetsList" class="max-h-80 overflow-y-auto custom-scroll space-y-2 pr-1"></div>
+        <div id="targetsList" class="max-h-72 overflow-y-auto custom-scroll space-y-1.5 pr-1"></div>
       </div>
 
       <!-- Tab Content: Protected -->
       <div id="protectedPanel" class="hidden space-y-2">
-        <p class="text-xs text-emerald-300/90">Item di bawah ini 100% dilindungi oleh sistem dan tidak akan disentuh:</p>
-        <div id="protectedList" class="max-h-80 overflow-y-auto custom-scroll space-y-2 pr-1"></div>
+        <p class="text-xs text-zinc-400">Kontak, grup whitelist, dan chat pribadi berikut tidak akan tersentuh:</p>
+        <div id="protectedList" class="max-h-72 overflow-y-auto custom-scroll space-y-1.5 pr-1"></div>
       </div>
 
-      <!-- Auto Logout Checkbox & Action Button -->
-      <div class="pt-3 border-t border-white/10 space-y-3">
-        <label class="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer select-none">
-          <input id="autoLogoutCheck" type="checkbox" checked class="w-4 h-4 rounded accent-emerald-500" />
-          <span>Otomatis Logout sesi CleanGram dari Telegram Devices setelah pembersihan selesai (Disarankan)</span>
+      <!-- Action Footer -->
+      <div class="pt-4 border-t border-zinc-800 space-y-3">
+        <label class="flex items-center gap-2 text-xs text-zinc-400 cursor-pointer select-none">
+          <input id="autoLogoutCheck" type="checkbox" checked class="w-4 h-4 rounded accent-[#24A1DE]" />
+          <span>Otomatis logout sesi CleanGram dari Telegram Devices setelah selesai</span>
         </label>
 
         <button id="startCleanBtn" type="button" onclick="startCleaning()"
-          class="w-full py-3.5 px-5 rounded-xl font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-400 hover:to-orange-400 shadow-lg shadow-rose-500/25 flex items-center justify-center gap-2 transition disabled:opacity-50">
+          class="w-full py-3 px-4 rounded-xl font-semibold text-sm text-white bg-red-600 hover:bg-red-500 flex items-center justify-center gap-2 transition disabled:opacity-50">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
-          <span id="startCleanText">Bersihkan Target Terpilih Sekarang</span>
+          <span id="startCleanText">Bersihkan Target Terpilih</span>
         </button>
       </div>
     </section>
 
-    <!-- STEP 4: PROGRESS & COMPLETION -->
-    <section id="step4Card" class="hidden glass rounded-2xl p-5 sm:p-7 shadow-2xl space-y-5">
+    <!-- STEP 4: PROGRESS & SUMMARY -->
+    <section id="step4Card" class="hidden rounded-2xl bg-[#111114] border border-zinc-800 p-6 sm:p-7 space-y-5">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div id="cleanStatusIcon" class="w-10 h-10 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400">
-            <i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>
+          <div id="cleanStatusIcon" class="w-9 h-9 rounded-lg bg-[#24A1DE]/15 border border-[#24A1DE]/30 flex items-center justify-center text-[#24A1DE]">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>
           </div>
           <div>
-            <h2 id="cleanStatusTitle" class="font-bold text-lg text-white">Sedang Membersihkan Akun...</h2>
-            <p id="cleanStatusSub" class="text-xs text-slate-400">Jangan tutup halaman ini hingga proses selesai.</p>
+            <h2 id="cleanStatusTitle" class="font-bold text-base text-white">Membersihkan Akun...</h2>
+            <p id="cleanStatusSub" class="text-xs text-zinc-400">Harap tunggu hingga proses selesai.</p>
           </div>
         </div>
-        <span id="cleanPct" class="text-lg font-extrabold text-sky-400 font-mono">0%</span>
+        <span id="cleanPct" class="text-base font-bold text-white font-mono">0%</span>
       </div>
 
-      <!-- Progress Bar -->
-      <div class="w-full h-3 rounded-full bg-slate-900 overflow-hidden border border-white/10">
-        <div id="cleanProgressBar" class="h-full bg-gradient-to-r from-sky-500 to-emerald-400 transition-all duration-300" style="width: 0%"></div>
+      <div class="w-full h-2 rounded-full bg-[#09090B] overflow-hidden border border-zinc-800">
+        <div id="cleanProgressBar" class="h-full bg-[#24A1DE] transition-all duration-300" style="width: 0%"></div>
       </div>
 
-      <!-- Live Terminal Log -->
-      <div id="liveLog" class="h-64 overflow-y-auto custom-scroll rounded-xl bg-slate-950/90 border border-white/10 p-3.5 font-mono text-xs space-y-1.5 text-slate-300"></div>
+      <div id="liveLog" class="h-60 overflow-y-auto custom-scroll rounded-xl bg-[#09090B] border border-zinc-800 p-3 font-mono text-[11px] space-y-1 text-zinc-300"></div>
 
-      <!-- Done Banner -->
-      <div id="doneSummary" class="hidden space-y-4">
-        <div class="rounded-xl bg-emerald-500/15 border border-emerald-500/30 p-4 space-y-2">
-          <div class="flex items-center gap-2 text-emerald-300 font-bold text-sm">
-            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-            <span>Pembersihan Selesai Total & Sesi Telah Di-Logout Permanen!</span>
+      <div id="doneSummary" class="hidden space-y-3">
+        <div class="rounded-xl bg-emerald-950/30 border border-emerald-500/30 p-3.5 space-y-1">
+          <div class="flex items-center gap-2 text-emerald-400 font-semibold text-xs sm:text-sm">
+            <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            <span>Pembersihan Selesai & Sesi Di-Logout Permanen</span>
           </div>
-          <p id="doneStatsText" class="text-xs text-slate-200"></p>
+          <p id="doneStatsText" class="text-xs text-zinc-300"></p>
         </div>
 
-        <div class="rounded-xl bg-slate-900/70 border border-white/10 p-4 text-xs text-slate-300 space-y-1">
-          <p class="font-semibold text-sky-300">💡 Tips Anti-Spam Telegram:</p>
-          <p>Buka Telegram di HP ➔ <strong>Settings</strong> ➔ <strong>Privacy & Security</strong> ➔ <strong>Groups & Channels</strong> ➔ Ubah ke <strong>My Contacts</strong> agar akun tak dikenal tidak bisa mengundang Anda sembarangan.</p>
+        <div class="rounded-xl bg-[#09090B] border border-zinc-800 p-3.5 text-xs text-zinc-400 space-y-1">
+          <p class="font-medium text-zinc-200">Tips Anti-Spam Telegram:</p>
+          <p>Settings ➔ Privacy & Security ➔ Groups & Channels ➔ ubah ke <strong class="text-white">My Contacts</strong>.</p>
         </div>
 
         <button type="button" onclick="window.location.reload()"
-          class="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 transition">
-          Selesai & Kembali ke Beranda
+          class="w-full py-2.5 rounded-xl font-semibold text-sm text-white bg-[#24A1DE] hover:bg-[#1D8FC7] transition">
+          Selesai
         </button>
       </div>
     </section>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="w-full border-t border-white/5 py-5 text-center text-xs text-slate-500 px-4">
-    <p>
-      <strong>CleanGram</strong> • Open Source Multi-Platform Telegram Cleaner (Web, PWA, CLI) •
-      <a href="https://github.com/BenedichtusRW/cleangram" target="_blank" class="text-sky-400 hover:underline">GitHub Repository</a>
-    </p>
+  <!-- Minimalist Footer -->
+  <footer class="w-full border-t border-zinc-800/60 py-4 text-center text-[11px] text-zinc-500 px-4">
+    CleanGram Open Source • Tanpa Database &amp; Tanpa Blokir •
+    <a href="https://github.com/BenedichtusRW/cleangram" target="_blank" class="text-zinc-300 hover:text-[#24A1DE] transition">Dokumentasi &amp; CLI</a>
   </footer>
 
   <script>
@@ -394,7 +382,6 @@
     let scannedProtected = [];
     let deferredPrompt = null;
 
-    // PWA Service Worker & Install Button
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     }
@@ -403,7 +390,7 @@
       deferredPrompt = e;
       const btn = document.getElementById('pwaInstallBtn');
       btn.classList.remove('hidden');
-      btn.classList.add('flex');
+      btn.classList.add('inline-flex');
       btn.onclick = async () => {
         if (!deferredPrompt) return;
         deferredPrompt.prompt();
@@ -424,15 +411,24 @@
 
     function setStep(stepNum) {
       hideError();
+      const container = document.getElementById('mainContainer');
+      if (stepNum === 3 || stepNum === 4) {
+        container.classList.remove('max-w-xl');
+        container.classList.add('max-w-2xl');
+      } else {
+        container.classList.remove('max-w-2xl');
+        container.classList.add('max-w-xl');
+      }
+
       [1, 2, 3, 4].forEach((n) => {
         document.getElementById(`step${n}Card`).classList.toggle('hidden', n !== stepNum);
         const ind = document.getElementById(`stepInd${n}`);
         if (n < stepNum) {
-          ind.className = 'py-2 px-1 rounded-xl border border-emerald-500/40 bg-emerald-500/15 text-emerald-300 transition';
+          ind.className = 'pb-2.5 text-center border-b-2 border-emerald-500 text-emerald-400 transition';
         } else if (n === stepNum) {
-          ind.className = 'py-2 px-1 rounded-xl border border-sky-500/40 bg-sky-500/20 text-sky-300 font-bold transition';
+          ind.className = 'pb-2.5 text-center border-b-2 border-[#24A1DE] text-white font-semibold transition';
         } else {
-          ind.className = 'py-2 px-1 rounded-xl border border-white/10 bg-white/5 text-slate-500 transition';
+          ind.className = 'pb-2.5 text-center border-b-2 border-transparent text-zinc-600 transition';
         }
       });
     }
@@ -464,7 +460,6 @@
       window.location.reload();
     }
 
-    // STEP 1: Send OTP
     document.getElementById('phoneForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       hideError();
@@ -496,12 +491,11 @@
         showError(err.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i><span>Kirim Kode OTP Telegram</span>';
+        btn.innerHTML = '<span>Lanjut & Kirim OTP</span><i data-lucide="arrow-right" class="w-4 h-4"></i>';
         lucide.createIcons();
       }
     });
 
-    // STEP 2: Verify OTP / 2FA & Scan
     document.getElementById('verifyForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       hideError();
@@ -534,7 +528,6 @@
           return;
         }
 
-        // Scan success!
         const fullName = `${data.user.first_name} ${data.user.last_name}`.trim();
         document.getElementById('userDisplayName').textContent = data.user.username
           ? `${fullName} (@${data.user.username})`
@@ -554,7 +547,7 @@
         showError(err.message);
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="scan-search" class="w-4 h-4"></i><span>Verifikasi & Pindai Akun Sekarang</span>';
+        btn.innerHTML = '<i data-lucide="scan-search" class="w-4 h-4"></i><span>Verifikasi & Pindai Akun</span>';
         lucide.createIcons();
       }
     });
@@ -564,11 +557,11 @@
       document.getElementById('targetsPanel').classList.toggle('hidden', !isTarget);
       document.getElementById('protectedPanel').classList.toggle('hidden', isTarget);
       document.getElementById('tabTargetBtn').className = isTarget
-        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30 transition'
-        : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-slate-400 hover:text-white border border-transparent transition';
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-white transition'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition';
       document.getElementById('tabProtectedBtn').className = !isTarget
-        ? 'px-4 py-2 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 transition'
-        : 'px-4 py-2 rounded-lg text-xs font-bold bg-white/5 text-slate-400 hover:text-white border border-transparent transition';
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-white transition'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition';
     }
 
     function updateCleanBtnLabel() {
@@ -577,8 +570,8 @@
       const lbl = document.getElementById('startCleanText');
       btn.disabled = count === 0;
       lbl.textContent = count > 0
-        ? `Bersihkan ${count} Target Terpilih Sekarang`
-        : 'Pilih Minimal 1 Target untuk Dibersihkan';
+        ? `Bersihkan ${count} Target Terpilih`
+        : 'Pilih Minimal 1 Target';
     }
 
     function toggleSelectAll(checked) {
@@ -603,10 +596,10 @@
 
       if (filtered.length === 0) {
         const empty = document.createElement('div');
-        empty.className = 'text-center py-8 text-xs text-slate-400';
+        empty.className = 'text-center py-8 text-xs text-zinc-500';
         empty.textContent = scannedTargets.length === 0
-          ? '🎉 Selamat! Tidak ada grup/bot spam yang ditemukan di akun Anda.'
-          : 'Tidak ada hasil yang cocok dengan pencarian Anda.';
+          ? 'Akun Anda sudah bersih, tidak ada grup/bot spam ditemukan.'
+          : 'Tidak ada item yang cocok dengan pencarian.';
         container.appendChild(empty);
         updateCleanBtnLabel();
         return;
@@ -614,12 +607,12 @@
 
       filtered.forEach(t => {
         const row = document.createElement('label');
-        row.className = 'flex items-center gap-3 p-3 rounded-xl bg-slate-900/70 hover:bg-slate-900 border border-white/5 cursor-pointer transition';
+        row.className = 'flex items-center gap-3 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800/80 cursor-pointer transition';
 
         const cb = document.createElement('input');
         cb.type = 'checkbox';
         cb.checked = selectedSet.has(t.id);
-        cb.className = 'w-4 h-4 rounded accent-rose-500 shrink-0';
+        cb.className = 'w-4 h-4 rounded accent-red-500 shrink-0';
         cb.onchange = () => {
           if (cb.checked) selectedSet.add(t.id);
           else selectedSet.delete(t.id);
@@ -629,16 +622,16 @@
         const info = document.createElement('div');
         info.className = 'flex-1 min-w-0';
         const title = document.createElement('div');
-        title.className = 'text-sm font-medium text-white truncate';
+        title.className = 'text-xs sm:text-sm font-medium text-zinc-100 truncate';
         title.textContent = t.name;
         const sub = document.createElement('div');
-        sub.className = 'text-[11px] text-slate-400 truncate';
+        sub.className = 'text-[11px] text-zinc-500 truncate';
         sub.textContent = t.username ? `@${t.username}` : 'Tanpa username';
         info.appendChild(title);
         info.appendChild(sub);
 
         const badge = document.createElement('span');
-        badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-300 border border-rose-500/25 shrink-0';
+        badge.className = 'text-[10px] font-medium px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 border border-zinc-700 shrink-0';
         badge.textContent = t.type;
 
         row.appendChild(cb);
@@ -656,29 +649,29 @@
 
       if (scannedProtected.length === 0) {
         const empty = document.createElement('div');
-        empty.className = 'text-center py-6 text-xs text-slate-500';
-        empty.textContent = 'Tidak ada item dilindungi yang terdeteksi.';
+        empty.className = 'text-center py-6 text-xs text-zinc-500';
+        empty.textContent = 'Tidak ada item dilindungi.';
         container.appendChild(empty);
         return;
       }
 
       scannedProtected.forEach(p => {
         const row = document.createElement('div');
-        row.className = 'flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-900/50 border border-emerald-500/15';
+        row.className = 'flex items-center justify-between gap-3 p-2.5 rounded-xl bg-[#09090B] border border-zinc-800/80';
 
         const info = document.createElement('div');
         info.className = 'min-w-0';
         const title = document.createElement('div');
-        title.className = 'text-sm font-medium text-slate-200 truncate';
+        title.className = 'text-xs sm:text-sm font-medium text-zinc-200 truncate';
         title.textContent = p.name;
         const sub = document.createElement('div');
-        sub.className = 'text-[11px] text-slate-500 truncate';
+        sub.className = 'text-[11px] text-zinc-500 truncate';
         sub.textContent = p.username ? `@${p.username}` : 'Aman';
         info.appendChild(title);
         info.appendChild(sub);
 
         const badge = document.createElement('span');
-        badge.className = 'text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 shrink-0';
+        badge.className = 'text-[10px] font-medium px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-400 border border-emerald-500/25 shrink-0';
         badge.textContent = p.reason;
 
         row.appendChild(info);
@@ -687,7 +680,7 @@
       });
     }
 
-    function appendLog(text, colorClass = 'text-slate-300') {
+    function appendLog(text, colorClass = 'text-zinc-300') {
       const logBox = document.getElementById('liveLog');
       const line = document.createElement('div');
       line.className = colorClass;
@@ -696,7 +689,6 @@
       logBox.scrollTop = logBox.scrollHeight;
     }
 
-    // STEP 4: Stream Cleaning Progress via SSE
     async function startCleaning() {
       const ids = Array.from(selectedSet);
       if (ids.length === 0) return;
@@ -704,7 +696,7 @@
       const autoLogout = document.getElementById('autoLogoutCheck').checked;
       setStep(4);
       document.getElementById('liveLog').innerHTML = '';
-      appendLog(`[MEMULAI] Memproses ${ids.length} target terpilih...`, 'text-sky-300');
+      appendLog(`[MEMULAI] Memproses ${ids.length} target...`, 'text-[#24A1DE]');
 
       try {
         const response = await fetch('/api/clean', {
@@ -753,24 +745,24 @@
             } else if (evt.event === 'done') {
               document.getElementById('cleanProgressBar').style.width = '100%';
               document.getElementById('cleanPct').textContent = '100%';
-              document.getElementById('cleanStatusTitle').textContent = 'Pembersihan Selesai!';
-              document.getElementById('cleanStatusSub').textContent = 'Akun Telegram Anda kini sudah bersih.';
-              document.getElementById('cleanStatusIcon').innerHTML = '<i data-lucide="check" class="w-5 h-5 text-emerald-400"></i>';
-              document.getElementById('cleanStatusIcon').className = 'w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center';
+              document.getElementById('cleanStatusTitle').textContent = 'Pembersihan Selesai';
+              document.getElementById('cleanStatusSub').textContent = 'Akun Telegram Anda telah dibersihkan.';
+              document.getElementById('cleanStatusIcon').innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>';
+              document.getElementById('cleanStatusIcon').className = 'w-9 h-9 rounded-lg bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-center';
               document.getElementById('doneStatsText').textContent =
-                `Berhasil keluar & menghapus riwayat ${evt.sukses} spam` +
+                `Berhasil keluar & menghapus riwayat ${evt.sukses} item` +
                 (evt.gagal > 0 ? ` (${evt.gagal} item dilewati).` : '.');
               document.getElementById('doneSummary').classList.remove('hidden');
               currentFlowId = null;
               lucide.createIcons();
             } else if (evt.event === 'error') {
-              appendLog(`❌ Error: ${evt.message}`, 'text-rose-400');
+              appendLog(`❌ Error: ${evt.message}`, 'text-red-400');
             }
           }
         }
       } catch (err) {
         showError(err.message);
-        appendLog(`❌ Koneksi terputus: ${err.message}`, 'text-rose-400');
+        appendLog(`❌ Koneksi terputus: ${err.message}`, 'text-red-400');
       }
     }
   </script>

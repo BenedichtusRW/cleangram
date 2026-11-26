@@ -5,11 +5,5 @@
       "maxDuration": 60,
       "includeFiles": "{templates,static}/**"
     }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/main.py"
-    }
-  ]
+  }
 }

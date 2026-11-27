@@ -519,7 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: const Text(
-              'Mobile',
+              'Mobile v1.1',
               style: TextStyle(
                 fontSize: 10,
                 fontFamily: 'monospace',

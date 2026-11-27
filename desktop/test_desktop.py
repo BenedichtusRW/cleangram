@@ -38,6 +38,7 @@ class TestDesktopHybrid(unittest.TestCase):
         self.assertIn('id="blockBotsCheck"', txt)
         self.assertIn("https://sociabuzz.com/benedichtus", txt)
         self.assertIn('id="supportQrBox"', txt)
+        self.assertIn("Desktop v1.1", txt)
 
     def test_default_cloud_qr_does_not_require_api_id(self) -> None:
         engine = DesktopHybridEngine(api_base="https://example.invalid")

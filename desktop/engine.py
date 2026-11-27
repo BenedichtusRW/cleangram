@@ -194,7 +194,7 @@ class DesktopHybridEngine:
             receive_updates=False,
             device_model="CleanGram Desktop",
             system_version="Windows 11",
-            app_version="1.0.0",
+            app_version="1.1.0",
             lang_code="en",
             system_lang_code="en",
         )

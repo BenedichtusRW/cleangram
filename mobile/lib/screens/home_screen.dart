@@ -1716,7 +1716,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 6),
                   const Text(
-                    'Scan QRIS / e-Wallet via sociabuzz.com/benedichtus',
+                    'Scan kamera HP untuk buka halaman sociabuzz.com/benedichtus',
                     textAlign: TextAlign.center,
                     style: TextStyle(fontSize: 11, color: Colors.white54),
                   ),

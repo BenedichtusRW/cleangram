@@ -136,10 +136,11 @@ CleanGram **100% gratis & open source** tanpa iklan. Jika aplikasi ini membantu 
 👉 **[Traktir Kopi via SociaBuzz (sociabuzz.com/benedichtus)](https://sociabuzz.com/benedichtus)**
 
 <details>
-<summary>📱 Tampilkan QR Code SociaBuzz (QRIS / e-Wallet)</summary>
+<summary>📱 Tampilkan QR Code Link SociaBuzz (sociabuzz.com/benedichtus)</summary>
 <br/>
 <p align="center">
-  <img src="web/static/sociabuzz-qr.png" alt="QR Code SociaBuzz CleanGram" width="200" />
+  <img src="web/static/sociabuzz-qr.png" alt="QR Code Link SociaBuzz CleanGram" width="200" /><br/>
+  <sub>Scan dengan kamera HP untuk membuka halaman <a href="https://sociabuzz.com/benedichtus">sociabuzz.com/benedichtus</a></sub>
 </p>
 </details>
 

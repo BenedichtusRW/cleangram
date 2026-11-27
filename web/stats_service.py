@@ -14,18 +14,35 @@ from typing import Any, Optional
 
 
 def _redis_credentials() -> tuple[str, str]:
-    """Mengambil kredensial Upstash Redis atau Vercel KV REST API dari env."""
-    url = (
-        os.getenv("UPSTASH_REDIS_REST_URL")
-        or os.getenv("KV_REST_API_URL")
-        or ""
-    ).strip().rstrip("/")
-    token = (
-        os.getenv("UPSTASH_REDIS_REST_TOKEN")
-        or os.getenv("KV_REST_API_TOKEN")
-        or ""
-    ).strip()
-    return url, token
+    """Mengambil kredensial Upstash Redis atau Vercel KV REST API dari env (termasuk Custom Prefix)."""
+    candidates = [
+        ("UPSTASH_REDIS_REST_URL", "UPSTASH_REDIS_REST_TOKEN"),
+        ("KV_REST_API_URL", "KV_REST_API_TOKEN"),
+        ("STORAGE_KV_REST_API_URL", "STORAGE_KV_REST_API_TOKEN"),
+        ("STORAGE_UPSTASH_REDIS_REST_URL", "STORAGE_UPSTASH_REDIS_REST_TOKEN"),
+        ("STORAGE_REST_API_URL", "STORAGE_REST_API_TOKEN"),
+    ]
+    for url_key, tok_key in candidates:
+        url = (os.getenv(url_key) or "").strip().rstrip("/")
+        tok = (os.getenv(tok_key) or "").strip()
+        if url and tok:
+            return url, tok
+
+    # Fallback: dukung Custom Prefix apa pun (*_REST_URL / *_REST_API_URL) non-readonly
+    for key, val in os.environ.items():
+        if not val:
+            continue
+        for url_suffix, tok_suffix in (
+            ("_KV_REST_API_URL", "_KV_REST_API_TOKEN"),
+            ("_UPSTASH_REDIS_REST_URL", "_UPSTASH_REDIS_REST_TOKEN"),
+            ("_REST_API_URL", "_REST_API_TOKEN"),
+        ):
+            if key.endswith(url_suffix):
+                prefix = key[: -len(url_suffix)]
+                tok = (os.getenv(f"{prefix}{tok_suffix}") or "").strip()
+                if tok:
+                    return val.strip().rstrip("/"), tok
+    return "", ""
 
 
 def is_stats_configured() -> bool:

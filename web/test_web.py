@@ -88,6 +88,22 @@ class TestWebAnalyticsAndStats(unittest.TestCase):
                 },
             )
 
+    def test_stats_supports_custom_storage_prefix(self) -> None:
+        env = {
+            "UPSTASH_REDIS_REST_URL": "",
+            "UPSTASH_REDIS_REST_TOKEN": "",
+            "KV_REST_API_URL": "",
+            "KV_REST_API_TOKEN": "",
+            "STORAGE_KV_REST_API_URL": "https://storage-kv.upstash.io",
+            "STORAGE_KV_REST_API_TOKEN": "tok_storage",
+            "STORAGE_KV_REST_API_READ_ONLY_TOKEN": "tok_ro",
+        }
+        with patch.dict(os.environ, env, clear=False):
+            self.assertEqual(
+                stats_service._redis_credentials(),
+                ("https://storage-kv.upstash.io", "tok_storage"),
+            )
+
     def test_stats_configured_endpoints_and_cleanup_recording(self) -> None:
         sample_last = json.dumps({"count": 27, "ts": 1795710000})
         env = {

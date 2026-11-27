@@ -416,6 +416,15 @@
     }
     details.advanced-box summary::-webkit-details-marker { display: none; }
     details.advanced-box summary:hover { color: #fff; }
+    details.advanced-box .adv-chevron {
+      display: inline-flex;
+      color: #71717A;
+      transform: rotate(-90deg);
+      transition: transform 0.2s ease;
+    }
+    details.advanced-box[open] .adv-chevron {
+      transform: rotate(0deg);
+    }
     .adv-body {
       margin-top: 12px;
       padding-top: 12px;
@@ -815,7 +824,9 @@
         <details id="advancedDetails" class="advanced-box">
           <summary>
             <span>Mode Lanjutan: Pakai API ID Sendiri / 100% Lokal (Pengguna Biasa Lewati)</span>
-            <span style="font-size:11px;color:#71717A">▾</span>
+            <svg class="adv-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
           </summary>
           <div class="adv-body">
             <p style="font-size:11.5px;color:#A1A1AA;line-height:1.5;">

@@ -28,6 +28,7 @@ class TestWebAnalyticsAndStats(unittest.TestCase):
         self.assertIn('id="activityToast"', html)
         self.assertIn('id="categoryFilterBar"', html)
         self.assertIn('id="blockBotsCheck"', html)
+        self.assertIn("group-open:rotate-0", html)
         self.assertIn('property="og:image"', html)
 
     def test_clean_single_peer_optional_block_bots_only_blocks_bots(self) -> None:

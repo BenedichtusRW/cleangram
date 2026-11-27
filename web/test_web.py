@@ -30,6 +30,9 @@ class TestWebAnalyticsAndStats(unittest.TestCase):
         self.assertIn('id="blockBotsCheck"', html)
         self.assertIn("group-open:rotate-0", html)
         self.assertIn('property="og:image"', html)
+        self.assertIn("https://sociabuzz.com/benedichtus", html)
+        self.assertIn('id="supportQrBox"', html)
+        self.assertTrue((WEB_DIR / "static" / "sociabuzz-qr.png").exists())
 
     def test_clean_single_peer_optional_block_bots_only_blocks_bots(self) -> None:
         async def run_cases() -> None:

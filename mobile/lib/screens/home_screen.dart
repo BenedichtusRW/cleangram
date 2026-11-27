@@ -70,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   double _progress = 0.0;
   int _totalSuccess = 0;
   int _totalFailed = 0;
+  bool _showSupportQr = false;
   final List<_LogLine> _logs = [];
   final ScrollController _logScrollCtrl = ScrollController();
 
@@ -123,6 +124,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _qrUrl = null;
       _requires2FA = false;
       _hideOtpFor2FA = false;
+      _showSupportQr = false;
       _errorMsg = null;
       _otpCtrl.clear();
       _twoFaCtrl.clear();
@@ -1615,6 +1617,113 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: kBgColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: kBorderColor),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  '☕ Dukung CleanGram Tetap Gratis',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                const Text(
+                  'Merasa terbantu? Traktir kopi developer lewat SociaBuzz (opsional).',
+                  style: TextStyle(fontSize: 11.5, color: Colors.white54),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFFFCD34D),
+                          side: const BorderSide(color: Color(0xFF3F3F46)),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () =>
+                            _openExternalUrl('https://sociabuzz.com/benedichtus'),
+                        child: const Text(
+                          'Traktir Kopi ↗',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _showSupportQr
+                            ? const Color(0xFFFCD34D)
+                            : Colors.white70,
+                        side: BorderSide(
+                          color: _showSupportQr
+                              ? const Color(0x66F59E0B)
+                              : kBorderColor,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showSupportQr = !_showSupportQr;
+                        });
+                      },
+                      icon: const Icon(Icons.qr_code_2_rounded, size: 16),
+                      label: const Text(
+                        'QR',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (_showSupportQr) ...[
+                  const SizedBox(height: 10),
+                  const Divider(color: kBorderColor, height: 1),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(
+                        'assets/sociabuzz_qr.png',
+                        width: 156,
+                        height: 156,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Scan QRIS / e-Wallet via sociabuzz.com/benedichtus',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 11, color: Colors.white54),
+                  ),
+                ],
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -1643,25 +1752,45 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: const BoxDecoration(
         border: Border(top: BorderSide(color: kBorderColor)),
       ),
-      child: GestureDetector(
-        onTap: () => _openExternalUrl('https://github.com/BenedichtusRW'),
-        child: RichText(
-          textAlign: TextAlign.center,
-          text: const TextSpan(
-            style: TextStyle(fontSize: 11, color: Colors.white38),
-            children: [
-              TextSpan(text: 'CleanGram Open Source • Built by '),
-              TextSpan(
-                text: 'ben_dev',
-                style: TextStyle(
-                  fontFamily: 'monospace',
-                  color: Colors.white70,
-                  fontWeight: FontWeight.w600,
-                ),
+      child: Wrap(
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6,
+        runSpacing: 4,
+        children: [
+          GestureDetector(
+            onTap: () => _openExternalUrl('https://github.com/BenedichtusRW'),
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: const TextSpan(
+                style: TextStyle(fontSize: 11, color: Colors.white38),
+                children: [
+                  TextSpan(text: 'CleanGram Open Source • Built by '),
+                  TextSpan(
+                    text: 'ben_dev',
+                    style: TextStyle(
+                      fontFamily: 'monospace',
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          const Text('•', style: TextStyle(fontSize: 11, color: Colors.white24)),
+          GestureDetector(
+            onTap: () => _openExternalUrl('https://sociabuzz.com/benedichtus'),
+            child: const Text(
+              '☕ Support',
+              style: TextStyle(
+                fontSize: 11,
+                color: Color(0xFFFCD34D),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

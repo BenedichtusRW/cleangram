@@ -1017,6 +1017,24 @@
             <strong style="color:#F4F4F5">Tips Anti-Spam Telegram:</strong>
             Buka <em>Settings ➔ Privacy &amp; Security ➔ Groups &amp; Channels</em> ➔ ubah ke <strong style="color:#fff">My Contacts</strong>.
           </div>
+          <div class="tip-box" style="display:flex;flex-direction:column;gap:10px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:600;color:#F4F4F5;">☕ Dukung CleanGram Tetap Gratis</div>
+                <div style="font-size:11.5px;color:#A1A1AA;margin-top:2px;">Merasa terbantu? Traktir kopi developer lewat SociaBuzz (opsional).</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                <button type="button" class="btn-secondary" style="width:auto;padding:7px 12px;font-size:12px;color:#FCD34D;border-color:#3F3F46;" onclick="openExternal('https://sociabuzz.com/benedichtus')">Traktir Kopi ↗</button>
+                <button type="button" id="desktopQrToggleBtn" class="btn-secondary" style="width:auto;padding:7px 11px;font-size:12px;" onclick="toggleSupportQr()">Scan QR</button>
+              </div>
+            </div>
+            <div id="supportQrBox" class="hidden" style="padding-top:10px;border-top:1px solid var(--border);text-align:center;">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                <img src="sociabuzz-qr.png" alt="QR Code SociaBuzz CleanGram" style="width:152px;height:152px;border-radius:12px;" />
+                <span style="font-size:11px;color:#A1A1AA;">Scan lewat QRIS / e-Wallet (<span class="mono" style="color:#E4E4E7;">sociabuzz.com/benedichtus</span>)</span>
+              </div>
+            </div>
+          </div>
           <button type="button" class="btn-primary" onclick="resetAll()">Selesai &amp; Kembali ke Awal</button>
         </div>
       </section>
@@ -1039,9 +1057,12 @@
   <!-- Watermark Footer -->
   <footer>
     <span>CleanGram Open Source • Keluar Tanpa Blokir</span>
-    <div>
-      Built by
-      <button type="button" class="link-btn mono" style="color:#E4E4E7;font-weight:600" onclick="openExternal('https://github.com/BenedichtusRW')">ben_dev</button>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span>Built by
+        <button type="button" class="link-btn mono" style="color:#E4E4E7;font-weight:600" onclick="openExternal('https://github.com/BenedichtusRW')">ben_dev</button>
+      </span>
+      <span aria-hidden="true">•</span>
+      <button type="button" class="link-btn" style="color:#FCD34D;" onclick="openExternal('https://sociabuzz.com/benedichtus')">☕ Support</button>
     </div>
   </footer>
 
@@ -1596,6 +1617,17 @@
       resetAll();
     }
 
+    function toggleSupportQr() {
+      const box = document.getElementById('supportQrBox');
+      const btn = document.getElementById('desktopQrToggleBtn');
+      if (!box) return;
+      const hidden = box.classList.toggle('hidden');
+      if (btn) {
+        btn.textContent = hidden ? 'Scan QR' : 'Tutup QR';
+        btn.style.color = hidden ? '' : '#FCD34D';
+      }
+    }
+
     function resetAll() {
       stopQrTimer();
       scannedTargets = [];
@@ -1604,6 +1636,13 @@
       document.getElementById('otpInput').value = '';
       document.getElementById('twoFaInput').value = '';
       document.getElementById('targetSearch').value = '';
+      const qrBox = document.getElementById('supportQrBox');
+      const qrBtn = document.getElementById('desktopQrToggleBtn');
+      if (qrBox) qrBox.classList.add('hidden');
+      if (qrBtn) {
+        qrBtn.textContent = 'Scan QR';
+        qrBtn.style.color = '';
+      }
       setStep(1);
     }
 

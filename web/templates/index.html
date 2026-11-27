@@ -446,6 +446,32 @@
           <p>Settings ➔ Privacy & Security ➔ Groups & Channels ➔ ubah ke <strong class="text-white">My Contacts</strong>.</p>
         </div>
 
+        <div class="rounded-xl bg-[#09090B] border border-zinc-800 p-3.5 space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+            <div class="space-y-0.5">
+              <p class="text-xs font-medium text-zinc-100">☕ Dukung CleanGram Tetap Gratis</p>
+              <p class="text-[11px] text-zinc-400">Merasa terbantu? Traktir kopi developer lewat SociaBuzz (opsional).</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <a href="https://sociabuzz.com/benedichtus" target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs font-medium text-amber-300 transition whitespace-nowrap">
+                <span>Traktir Kopi ↗</span>
+              </a>
+              <button type="button" id="webQrToggleBtn" onclick="toggleSupportQr()"
+                 class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition whitespace-nowrap">
+                <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+                <span>QR</span>
+              </button>
+            </div>
+          </div>
+          <div id="supportQrBox" class="hidden pt-2 border-t border-zinc-800/80">
+            <div class="flex flex-col items-center gap-1.5 text-center">
+              <img src="/static/sociabuzz-qr.png" alt="QR Code SociaBuzz CleanGram" class="w-40 h-40 rounded-xl shadow-md" />
+              <span class="text-[11px] text-zinc-500">Scan QRIS / e-Wallet via SociaBuzz (<span class="font-mono text-zinc-300">sociabuzz.com/benedichtus</span>)</span>
+            </div>
+          </div>
+        </div>
+
         <button type="button" onclick="window.location.reload()"
           class="w-full py-2.5 rounded-xl font-semibold text-sm text-white bg-[#24A1DE] hover:bg-[#1D8FC7] transition">
           Selesai
@@ -529,8 +555,10 @@
       CleanGram Open Source • Tanpa Database &amp; Tanpa Blokir •
       <a href="https://github.com/BenedichtusRW/cleangram" target="_blank" class="text-zinc-300 hover:text-[#24A1DE] transition">Dokumentasi &amp; CLI</a>
     </div>
-    <div class="text-[11px] text-zinc-600">
-      Built by <a href="https://github.com/BenedichtusRW" target="_blank" rel="noopener noreferrer" class="font-mono text-zinc-300 hover:text-[#24A1DE] transition">ben_dev</a>
+    <div class="text-[11px] text-zinc-600 flex items-center justify-center gap-2 flex-wrap">
+      <span>Built by <a href="https://github.com/BenedichtusRW" target="_blank" rel="noopener noreferrer" class="font-mono text-zinc-300 hover:text-[#24A1DE] transition">ben_dev</a></span>
+      <span aria-hidden="true">•</span>
+      <a href="https://sociabuzz.com/benedichtus" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-amber-300 transition">☕ Support Developer</a>
     </div>
   </footer>
 
@@ -1146,6 +1174,17 @@
       if (diff < 3600) return `${Math.floor(diff / 60)} menit lalu`;
       if (diff < 86400) return `${Math.floor(diff / 3600)} jam lalu`;
       return `${Math.floor(diff / 86400)} hari lalu`;
+    }
+
+    function toggleSupportQr() {
+      const box = document.getElementById('supportQrBox');
+      const btn = document.getElementById('webQrToggleBtn');
+      if (!box) return;
+      const hidden = box.classList.toggle('hidden');
+      if (btn) {
+        btn.classList.toggle('border-amber-500/40', !hidden);
+        btn.classList.toggle('text-amber-300', !hidden);
+      }
     }
 
     function dismissActivityToast() {

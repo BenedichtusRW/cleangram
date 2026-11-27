@@ -31,10 +31,13 @@ class TestDesktopHybrid(unittest.TestCase):
         ui_html = resource_path("ui/index.html")
         self.assertTrue(ui_html.exists())
         self.assertTrue(resource_path("ui/logo.png").exists())
+        self.assertTrue(resource_path("ui/sociabuzz-qr.png").exists())
         self.assertTrue(resource_path("assets/icon.ico").exists())
         txt = ui_html.read_text(encoding="utf-8")
         self.assertIn('id="categoryFilterBar"', txt)
         self.assertIn('id="blockBotsCheck"', txt)
+        self.assertIn("https://sociabuzz.com/benedichtus", txt)
+        self.assertIn('id="supportQrBox"', txt)
 
     def test_default_cloud_qr_does_not_require_api_id(self) -> None:
         engine = DesktopHybridEngine(api_base="https://example.invalid")

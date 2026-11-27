@@ -71,8 +71,23 @@ class _HomeScreenState extends State<HomeScreen> {
   int _totalSuccess = 0;
   int _totalFailed = 0;
   bool _showSupportQr = false;
+  GlobalStats? _globalStats;
   final List<_LogLine> _logs = [];
   final ScrollController _logScrollCtrl = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGlobalStats();
+  }
+
+  Future<void> _loadGlobalStats() async {
+    final stats = await _api.fetchStats();
+    if (!mounted || stats == null) return;
+    setState(() {
+      _globalStats = stats;
+    });
+  }
 
   @override
   void dispose() {
@@ -439,6 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _cleaningDone = true;
         _flowToken = null;
       });
+      _loadGlobalStats();
     } catch (e) {
       if (mounted) {
         _showError(e.toString());
@@ -702,25 +718,87 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStep1() {
-    return _cardContainer(
-      children: [
-        const Text(
-          'Masuk ke CleanGram',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+  Widget _buildGlobalStatsBanner(GlobalStats stats) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+      decoration: BoxDecoration(
+        color: kCardColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kBorderColor),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: const BoxDecoration(
+              color: kEmerald,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          'Keluar dari grup spam, saluran asing, dan bot tanpa menyentuh kontak pribadi.',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.white54),
-        ),
-        const SizedBox(height: 16),
+          const SizedBox(width: 7),
+          const Text(
+            'Live Global',
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          const Spacer(),
+          Text(
+            '${stats.sessions} Pindai',
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.w600,
+              color: kTgBlue,
+            ),
+          ),
+          const Text(
+            '  •  ',
+            style: TextStyle(fontSize: 11, color: Colors.white24),
+          ),
+          Text(
+            '${stats.cleanedItems} Bersih',
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontFamily: 'monospace',
+              fontWeight: FontWeight.w600,
+              color: kEmerald,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep1() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_globalStats != null && _globalStats!.configured) ...[
+          _buildGlobalStatsBanner(_globalStats!),
+          const SizedBox(height: 10),
+        ],
+        _cardContainer(
+          children: [
+            const Text(
+              'Masuk ke CleanGram',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Keluar dari grup spam, saluran asing, dan bot tanpa menyentuh kontak pribadi.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: Colors.white54),
+            ),
+            const SizedBox(height: 14),
 
         // Mode switcher (OTP vs QR)
         Container(
@@ -984,6 +1062,8 @@ class _HomeScreenState extends State<HomeScreen> {
             _TrustChip(icon: Icons.person_outline, color: Colors.white54, label: 'Blokir Bot opsional'),
           ],
         ),
+        ],
+      ),
       ],
     );
   }

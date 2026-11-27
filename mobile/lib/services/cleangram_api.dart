@@ -10,6 +10,26 @@ class CleanGramApiException implements Exception {
   String toString() => message;
 }
 
+class GlobalStats {
+  final bool configured;
+  final int sessions;
+  final int cleanedItems;
+
+  const GlobalStats({
+    required this.configured,
+    required this.sessions,
+    required this.cleanedItems,
+  });
+
+  factory GlobalStats.fromJson(Map<String, dynamic> json) {
+    return GlobalStats(
+      configured: json['configured'] == true,
+      sessions: (json['sessions'] as num?)?.toInt() ?? 0,
+      cleanedItems: (json['cleaned_items'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
 class CleanGramApi {
   static const String defaultBaseUrl = 'https://cleangram-alpha.vercel.app';
   String baseUrl;
@@ -155,6 +175,22 @@ class CleanGramApi {
       timeout: const Duration(seconds: 60),
     );
     return BatchCleanResult.fromJson(data);
+  }
+
+  Future<GlobalStats?> fetchStats() async {
+    try {
+      final response = await http
+          .get(_endpoint('/api/stats'))
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        return null;
+      }
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final stats = GlobalStats.fromJson(decoded);
+      return stats.configured ? stats : null;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> logout(String flowToken) async {

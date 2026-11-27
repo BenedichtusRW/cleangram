@@ -778,6 +778,18 @@ class DesktopHybridEngine:
                 pass
         return logged_out
 
+    def get_live_stats(self) -> dict[str, Any]:
+        """Mengambil statistik agregat komunitas dari server CleanGram secara aman."""
+        try:
+            resp = self._http.get(f"{self.api_base}/api/stats", timeout=8)
+            if resp.ok:
+                data = resp.json()
+                if isinstance(data, dict):
+                    return data
+        except Exception:
+            pass
+        return {"configured": False}
+
     def shutdown(self) -> None:
         self._cancel_event.set()
         self.logout()

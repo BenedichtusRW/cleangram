@@ -38,7 +38,25 @@ class TestDesktopHybrid(unittest.TestCase):
         self.assertIn('id="blockBotsCheck"', txt)
         self.assertIn("https://sociabuzz.com/benedichtus", txt)
         self.assertIn('id="supportQrBox"', txt)
+        self.assertIn('id="desktopStatsBar"', txt)
         self.assertIn("Desktop v1.1", txt)
+
+    def test_desktop_live_stats_fetch_and_fallback(self) -> None:
+        engine = DesktopHybridEngine(api_base="https://example.invalid")
+        ok_resp = MagicMock(ok=True)
+        ok_resp.json.return_value = {"configured": True, "sessions": 12, "cleaned_items": 340}
+        with patch.object(engine._http, "get", return_value=ok_resp):
+            bridge = DesktopApiBridge(engine=engine)
+            res = bridge.get_live_stats()
+        self.assertTrue(res["ok"])
+        self.assertTrue(res["data"]["configured"])
+        self.assertEqual(res["data"]["sessions"], 12)
+
+        with patch.object(engine._http, "get", side_effect=RuntimeError("offline")):
+            bridge = DesktopApiBridge(engine=engine)
+            res_offline = bridge.get_live_stats()
+        self.assertTrue(res_offline["ok"])
+        self.assertFalse(res_offline["data"]["configured"])
 
     def test_default_cloud_qr_does_not_require_api_id(self) -> None:
         engine = DesktopHybridEngine(api_base="https://example.invalid")

@@ -157,6 +157,12 @@ class DesktopApiBridge:
         except Exception as exc:
             return self._err(exc)
 
+    def get_live_stats(self) -> dict[str, Any]:
+        try:
+            return self._ok(self.engine.get_live_stats())
+        except Exception:
+            return self._ok({"configured": False})
+
 
 def main() -> None:
     ui_index = resource_path("ui/index.html")

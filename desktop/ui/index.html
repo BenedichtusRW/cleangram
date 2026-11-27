@@ -636,6 +636,42 @@
       color: var(--text-muted);
     }
 
+    /* Compact Live Stats Bar */
+    .stats-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      font-size: 11.5px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .stats-bar-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: #E4E4E7;
+    }
+    .stats-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--emerald);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+      flex-shrink: 0;
+    }
+    .stats-bar-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     /* Modal Confirm */
     .modal-backdrop {
       position: fixed;
@@ -727,6 +763,19 @@
         </svg>
         <div id="errorText" style="flex:1"></div>
         <button type="button" onclick="hideError()" title="Tutup">✕</button>
+      </div>
+
+      <!-- Compact Synced Global Stats Bar (Step 1 when reachable) -->
+      <div id="desktopStatsBar" class="stats-bar hidden">
+        <span class="stats-bar-left">
+          <span class="stats-dot"></span>
+          <span>Statistik Global CleanGram</span>
+        </span>
+        <span class="stats-bar-right mono">
+          <span><strong id="dStatSessions" style="color:#38BDF8;">0</strong> Sesi Pindai</span>
+          <span style="color:#52525B;">•</span>
+          <span><strong id="dStatCleaned" style="color:#34D399;">0</strong> Grup/Bot Bersih</span>
+        </span>
       </div>
 
       <!-- STEP 1: LOGIN -->
@@ -1157,6 +1206,8 @@
       updateModeIndicator();
     }
 
+    let hasDesktopStats = false;
+
     function setStep(stepNum) {
       hideError();
       const ws = document.getElementById('workspace');
@@ -1169,6 +1220,8 @@
         if (n < stepNum) ind.classList.add('done');
         else if (n === stepNum) ind.classList.add('active');
       });
+      const statsBar = document.getElementById('desktopStatsBar');
+      if (statsBar) statsBar.classList.toggle('hidden', !hasDesktopStats || stepNum !== 1);
       document.getElementById('mainScroll').scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1596,6 +1649,7 @@
           `Berhasil dibersihkan: ${ev.sukses} item` +
           (ev.gagal > 0 ? ` • Dilewati: ${ev.gagal} item.` : '.');
         appendLog(`\n=== ${title} (Sukses: ${ev.sukses}, Dilewati: ${ev.gagal}) ===`, '#38BDF8');
+        refreshDesktopLiveStats();
       } else if (ev.event === 'error') {
         document.getElementById('runningControls').classList.add('hidden');
         document.getElementById('donePanel').classList.remove('hidden');
@@ -1646,6 +1700,19 @@
       setStep(1);
     }
 
+    async function refreshDesktopLiveStats() {
+      try {
+        const stats = await callApi('get_live_stats');
+        if (!stats || !stats.configured) return;
+        hasDesktopStats = true;
+        document.getElementById('dStatSessions').textContent = Number(stats.sessions || 0).toLocaleString('id-ID');
+        document.getElementById('dStatCleaned').textContent = Number(stats.cleaned_items || 0).toLocaleString('id-ID');
+        const step1Visible = !document.getElementById('step1Card').classList.contains('hidden');
+        const statsBar = document.getElementById('desktopStatsBar');
+        if (statsBar && step1Visible) statsBar.classList.remove('hidden');
+      } catch (_) {}
+    }
+
     async function initDesktopApp() {
       try {
         const cfg = await callApi('get_init_config');
@@ -1656,6 +1723,7 @@
       } catch (err) {
         updateModeIndicator();
       }
+      refreshDesktopLiveStats();
     }
 
     if (window.pywebview && window.pywebview.api) {

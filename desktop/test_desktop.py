@@ -1,9 +1,12 @@
 """Unit tests untuk CleanGram Desktop Hybrid Engine & API Bridge."""
 
+import asyncio
 import sys
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
+from telethon import functions as tl_functions
 
 DESKTOP_DIR = Path(__file__).resolve().parent
 if str(DESKTOP_DIR) not in sys.path:
@@ -24,10 +27,14 @@ class TestDesktopHybrid(unittest.TestCase):
         self.assertTrue(uri.startswith("data:image/png;base64,"))
         self.assertGreater(len(uri), 100)
 
-    def test_resources_exist(self) -> None:
-        self.assertTrue(resource_path("ui/index.html").exists())
+    def test_resources_and_category_filter_ui_exist(self) -> None:
+        ui_html = resource_path("ui/index.html")
+        self.assertTrue(ui_html.exists())
         self.assertTrue(resource_path("ui/logo.png").exists())
         self.assertTrue(resource_path("assets/icon.ico").exists())
+        txt = ui_html.read_text(encoding="utf-8")
+        self.assertIn('id="categoryFilterBar"', txt)
+        self.assertIn('id="blockBotsCheck"', txt)
 
     def test_default_cloud_qr_does_not_require_api_id(self) -> None:
         engine = DesktopHybridEngine(api_base="https://example.invalid")
@@ -48,7 +55,7 @@ class TestDesktopHybrid(unittest.TestCase):
         self.assertFalse(res["ok"])
         self.assertIn("API ID harus berupa angka", res["error"])
 
-    def test_cloud_clean_all_batches_and_progress(self) -> None:
+    def test_cloud_clean_all_batches_and_block_bots_flag(self) -> None:
         engine = DesktopHybridEngine(api_base="https://example.invalid")
         engine._flow_token = "tok_clean"
         ids = list(range(1, 21))
@@ -65,13 +72,44 @@ class TestDesktopHybrid(unittest.TestCase):
         }
 
         events: list[dict] = []
-        with patch.object(engine._http, "post", side_effect=[batch1, batch2]):
-            summary = engine.run_cleaning(ids, auto_logout=True, emit=events.append)
+        with patch.object(engine._http, "post", side_effect=[batch1, batch2]) as post_mock:
+            summary = engine.run_cleaning(ids, auto_logout=True, emit=events.append, block_bots=True)
 
         self.assertEqual(summary["sukses"], 20)
         self.assertEqual(summary["gagal"], 0)
         self.assertFalse(summary["cancelled"])
         self.assertEqual(len(events), 20)
+        self.assertTrue(post_mock.call_args_list[0].kwargs["json"]["block_bots"])
+
+    def test_local_clean_single_dialog_blocks_only_bots(self) -> None:
+        engine = DesktopHybridEngine(api_base="https://example.invalid")
+        fake_client = AsyncMock()
+        fake_client.return_value = None
+        fake_client.delete_dialog = AsyncMock()
+        engine._client = fake_client
+
+        bot_dialog = MagicMock(is_user=True, is_channel=False, is_group=False, input_entity="bot_peer")
+        blocked = asyncio.run(engine._local_clean_single_dialog(bot_dialog, tipe="Bot", block_bots=True))
+        self.assertTrue(blocked)
+        self.assertTrue(
+            any(
+                isinstance(call.args[0], tl_functions.contacts.BlockRequest)
+                for call in fake_client.call_args_list
+                if call.args
+            )
+        )
+
+        fake_client.reset_mock()
+        ch_dialog = MagicMock(is_user=False, is_channel=True, is_group=False, input_entity="ch_peer")
+        blocked_ch = asyncio.run(engine._local_clean_single_dialog(ch_dialog, tipe="Saluran", block_bots=True))
+        self.assertFalse(blocked_ch)
+        self.assertFalse(
+            any(
+                isinstance(call.args[0], tl_functions.contacts.BlockRequest)
+                for call in fake_client.call_args_list
+                if call.args
+            )
+        )
 
 
 if __name__ == "__main__":

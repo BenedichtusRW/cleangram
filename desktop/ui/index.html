@@ -869,7 +869,7 @@
           </div>
           <div class="trust-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A1A1AA" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
-            <span>Keluar grup tanpa memblokir</span>
+            <span>Blokir Bot spam opsional</span>
           </div>
         </div>
       </section>
@@ -945,6 +945,7 @@
         </div>
 
         <div id="targetsPanel" style="display:flex;flex-direction:column;gap:10px;">
+          <div id="categoryFilterBar" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
           <div class="list-toolbar">
             <input id="targetSearch" type="text" class="input" style="padding:7px 11px;font-size:12.5px;"
               placeholder="Cari grup, channel, atau bot..." oninput="renderTargets()" />
@@ -961,7 +962,11 @@
           <div id="protectedList" class="items-box scroll-area"></div>
         </div>
 
-        <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;flex-direction:column;gap:12px;">
+        <div style="border-top:1px solid var(--border);padding-top:14px;display:flex;flex-direction:column;gap:11px;">
+          <label class="check-row" style="align-items:flex-start;">
+            <input id="blockBotsCheck" type="checkbox" style="margin-top:2px;accent-color:#EF4444;" />
+            <span>Sekalian <strong style="color:#fff">Blokir Bot terpilih permanen</strong> <span style="color:#71717A">(hanya memblokir tipe Bot; Grup &amp; Saluran tetap keluar bersih)</span></span>
+          </label>
           <label class="check-row">
             <input id="autoLogoutCheck" type="checkbox" checked />
             <span>Otomatis logout sesi CleanGram dari Telegram Devices setelah selesai</span>
@@ -1280,6 +1285,8 @@
       }
     }
 
+    let activeCategoryFilter = 'ALL';
+
     function applyScanData(data) {
       const u = data.user || {};
       const fullName = `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'Pengguna';
@@ -1290,11 +1297,15 @@
       scannedTargets = data.targets || [];
       scannedProtected = data.protected || [];
       selectedIds = new Set(scannedTargets.map(t => t.id));
+      activeCategoryFilter = 'ALL';
+      const bbCheck = document.getElementById('blockBotsCheck');
+      if (bbCheck) bbCheck.checked = false;
 
       document.getElementById('targetCountNum').textContent = scannedTargets.length;
       document.getElementById('protectedCountNum').textContent = scannedProtected.length;
 
       switchReviewTab('targets');
+      renderCategoryBar();
       renderTargets();
       renderProtected();
       setStep(3);
@@ -1308,9 +1319,61 @@
       document.getElementById('tabProtected').classList.toggle('active', !isTargets);
     }
 
+    function getFilteredTargets() {
+      const query = document.getElementById('targetSearch').value.trim().toLowerCase();
+      return scannedTargets.filter(t => {
+        if (activeCategoryFilter !== 'ALL' && t.type !== activeCategoryFilter) return false;
+        if (!query) return true;
+        return t.name.toLowerCase().includes(query) ||
+          (t.username && t.username.toLowerCase().includes(query)) ||
+          t.type.toLowerCase().includes(query);
+      });
+    }
+
+    function setCategoryFilter(cat) {
+      activeCategoryFilter = cat;
+      renderCategoryBar();
+      renderTargets();
+    }
+
+    function renderCategoryBar() {
+      const bar = document.getElementById('categoryFilterBar');
+      if (!bar) return;
+      bar.innerHTML = '';
+
+      const counts = { ALL: scannedTargets.length };
+      scannedTargets.forEach(t => {
+        counts[t.type] = (counts[t.type] || 0) + 1;
+      });
+
+      const order = [
+        { key: 'ALL', label: 'Semua' },
+        { key: 'Grup', label: 'Grup' },
+        { key: 'Saluran', label: 'Saluran' },
+        { key: 'Bot', label: 'Bot' },
+        { key: 'Akun Terhapus', label: 'Akun Terhapus' }
+      ];
+
+      order.forEach(({ key, label }) => {
+        const cnt = counts[key] || 0;
+        if (key !== 'ALL' && cnt === 0) return;
+        const active = activeCategoryFilter === key;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'pill-tab' + (active ? ' active' : '');
+        btn.style.cssText = active
+          ? 'font-size:11.5px;padding:5px 10px;border:1px solid rgba(36,161,222,0.45);background:rgba(36,161,222,0.16);color:#38BDF8;'
+          : 'font-size:11.5px;padding:5px 10px;border:1px solid var(--border);background:var(--bg);color:var(--text-muted);';
+        btn.textContent = `${label} (${cnt})`;
+        btn.onclick = () => setCategoryFilter(key);
+        bar.appendChild(btn);
+      });
+    }
+
     function toggleAll(checked) {
-      if (checked) scannedTargets.forEach(t => selectedIds.add(t.id));
-      else selectedIds.clear();
+      const visible = getFilteredTargets();
+      if (checked) visible.forEach(t => selectedIds.add(t.id));
+      else visible.forEach(t => selectedIds.delete(t.id));
       renderTargets();
     }
 
@@ -1326,21 +1389,16 @@
 
     function renderTargets() {
       const list = document.getElementById('targetsList');
-      const query = document.getElementById('targetSearch').value.trim().toLowerCase();
       list.innerHTML = '';
 
-      const filtered = scannedTargets.filter(t =>
-        t.name.toLowerCase().includes(query) ||
-        (t.username && t.username.toLowerCase().includes(query)) ||
-        t.type.toLowerCase().includes(query)
-      );
+      const filtered = getFilteredTargets();
 
       if (filtered.length === 0) {
         const empty = document.createElement('div');
         empty.style.cssText = 'text-align:center;padding:28px;font-size:12.5px;color:#71717A;';
         empty.textContent = scannedTargets.length === 0
           ? 'Akun Anda bersih! Tidak ada grup spam atau bot target ditemukan.'
-          : 'Tidak ada item yang cocok dengan pencarian.';
+          : 'Tidak ada item yang cocok dengan filter / pencarian.';
         list.appendChild(empty);
         updateCleanBtn();
         return;
@@ -1419,8 +1477,12 @@
 
     function askCleanConfirm() {
       if (selectedIds.size === 0) return;
+      const blockBots = Boolean(document.getElementById('blockBotsCheck') && document.getElementById('blockBotsCheck').checked);
+      const tail = blockBots
+        ? 'Bot terpilih juga akan diblokir permanen agar tidak mengirim spam lagi; Grup & Saluran tetap keluar bersih.'
+        : 'Kontak HP & item dilindungi 100% aman (tidak ada yang diblokir).';
       document.getElementById('confirmModalText').textContent =
-        `Yakin ingin KELUAR & HAPUS RIWAYAT ${selectedIds.size} grup / saluran / bot terpilih? Kontak HP & item dilindungi 100% aman (tidak ada yang diblokir).`;
+        `Yakin ingin KELUAR & HAPUS RIWAYAT ${selectedIds.size} grup / saluran / bot terpilih? ${tail}`;
       document.getElementById('confirmModal').classList.remove('hidden');
     }
 
@@ -1432,6 +1494,7 @@
       closeCleanConfirm();
       const ids = Array.from(selectedIds);
       const autoLogout = document.getElementById('autoLogoutCheck').checked;
+      const blockBots = Boolean(document.getElementById('blockBotsCheck') && document.getElementById('blockBotsCheck').checked);
 
       setStep(4);
       document.getElementById('cleanProgressBar').style.width = '0%';
@@ -1444,10 +1507,10 @@
       document.getElementById('donePanel').classList.add('hidden');
       document.getElementById('liveLog').innerHTML = '';
 
-      appendLog(`[MEMULAI] Memproses ${ids.length} target (mode aman tanpa blokir)...`, '#38BDF8');
+      appendLog(`[MEMULAI] Memproses ${ids.length} target (${blockBots ? 'dengan blokir Bot spam' : 'tanpa blokir'})...`, '#38BDF8');
 
       try {
-        await callApi('start_cleaning', ids, autoLogout);
+        await callApi('start_cleaning', ids, autoLogout, blockBots);
       } catch (err) {
         showError(err.message);
         document.getElementById('runningControls').classList.add('hidden');

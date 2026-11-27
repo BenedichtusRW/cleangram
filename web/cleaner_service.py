@@ -512,8 +512,19 @@ async def verify_and_scan(
             pass
 
 
-async def _clean_single_peer(client: TelegramClient, peer: Any, kind: str) -> None:
-    """Keluar dari grup/saluran dan menghapus seluruh riwayat obrolan tanpa memblokir."""
+async def _clean_single_peer(
+    client: TelegramClient,
+    peer: Any,
+    kind: str,
+    tipe: str = "",
+    block_bots: bool = False,
+) -> bool:
+    """Keluar dari grup/saluran, hapus riwayat chat, dan opsional blokir Bot spam."""
+    blocked = False
+    if block_bots and kind == "us" and tipe == "Bot":
+        await client(functions.contacts.BlockRequest(id=peer))
+        blocked = True
+
     if kind == "ch":
         try:
             await client(functions.channels.LeaveChannelRequest(peer))
@@ -550,12 +561,15 @@ async def _clean_single_peer(client: TelegramClient, peer: Any, kind: str) -> No
     except Exception:
         pass
 
+    return blocked
+
 
 async def clean_batch(
     flow_token: str,
     target_ids: list[int],
     is_last_batch: bool = True,
     auto_logout: bool = True,
+    block_bots: bool = False,
 ) -> dict[str, Any]:
     """Membersihkan satu batch item (aman dari timeout serverless) lalu opsional logout."""
     state = decrypt_state(flow_token)
@@ -587,17 +601,27 @@ async def clean_batch(
             tipe = meta.get("t", "Target")
 
             try:
-                await _clean_single_peer(client, peer, kind)
+                was_blocked = await _clean_single_peer(
+                    client, peer, kind, tipe=tipe, block_bots=block_bots
+                )
                 sukses += 1
-                results.append({"id": did, "name": name, "type": tipe, "status": "ok", "message": "Berhasil keluar & hapus riwayat"})
+                ok_msg = "Berhasil blokir bot & hapus riwayat" if was_blocked else "Berhasil keluar & hapus riwayat"
+                results.append({"id": did, "name": name, "type": tipe, "status": "ok", "message": ok_msg})
                 await asyncio.sleep(0.3)
             except FloodWaitError as exc:
                 if exc.seconds <= 12:
                     await asyncio.sleep(exc.seconds)
                     try:
-                        await _clean_single_peer(client, peer, kind)
+                        was_blocked = await _clean_single_peer(
+                            client, peer, kind, tipe=tipe, block_bots=block_bots
+                        )
                         sukses += 1
-                        results.append({"id": did, "name": name, "type": tipe, "status": "ok", "message": "Berhasil setelah jeda limit"})
+                        ok_msg = (
+                            "Berhasil blokir bot setelah jeda limit"
+                            if was_blocked
+                            else "Berhasil setelah jeda limit"
+                        )
+                        results.append({"id": did, "name": name, "type": tipe, "status": "ok", "message": ok_msg})
                         continue
                     except Exception as inner_exc:
                         gagal += 1

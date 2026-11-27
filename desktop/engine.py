@@ -357,8 +357,15 @@ class DesktopHybridEngine:
 
         return {"user": user_info, "protected": protected, "targets": targets}
 
-    async def _local_clean_single_dialog(self, dialog: Any) -> None:
+    async def _local_clean_single_dialog(
+        self, dialog: Any, tipe: str = "", block_bots: bool = False
+    ) -> bool:
         assert self._client is not None
+        blocked = False
+        if block_bots and getattr(dialog, "is_user", False) and tipe == "Bot":
+            await self._client(functions.contacts.BlockRequest(id=dialog.input_entity))
+            blocked = True
+
         if dialog.is_channel:
             try:
                 await self._client(functions.channels.LeaveChannelRequest(dialog.input_entity))
@@ -391,12 +398,14 @@ class DesktopHybridEngine:
             await self._client.delete_dialog(dialog, revoke=True)
         except Exception:
             pass
+        return blocked
 
     async def _local_clean_all(
         self,
         selected_ids: list[int],
         auto_logout: bool,
         emit: Callable[[dict[str, Any]], None],
+        block_bots: bool = False,
     ) -> dict[str, Any]:
         if not self._client:
             raise ValueError("Koneksi Telegram terputus.")
@@ -415,8 +424,11 @@ class DesktopHybridEngine:
 
                 name = (dialog.name or "Akun Terhapus")[:50]
                 try:
-                    await self._local_clean_single_dialog(dialog)
+                    was_blocked = await self._local_clean_single_dialog(
+                        dialog, tipe=tipe, block_bots=block_bots
+                    )
                     sukses += 1
+                    ok_msg = "Berhasil blokir bot & hapus riwayat" if was_blocked else "Berhasil keluar & hapus"
                     emit(
                         {
                             "event": "progress",
@@ -425,7 +437,7 @@ class DesktopHybridEngine:
                             "status": "ok",
                             "name": name,
                             "type": tipe,
-                            "message": "Berhasil keluar & hapus",
+                            "message": ok_msg,
                         }
                     )
                     await asyncio.sleep(0.3)
@@ -447,8 +459,15 @@ class DesktopHybridEngine:
                     if cancelled:
                         break
                     try:
-                        await self._local_clean_single_dialog(dialog)
+                        was_blocked = await self._local_clean_single_dialog(
+                            dialog, tipe=tipe, block_bots=block_bots
+                        )
                         sukses += 1
+                        ok_msg = (
+                            "Berhasil blokir bot setelah jeda limit"
+                            if was_blocked
+                            else "Berhasil setelah jeda limit"
+                        )
                         emit(
                             {
                                 "event": "progress",
@@ -457,7 +476,7 @@ class DesktopHybridEngine:
                                 "status": "ok",
                                 "name": name,
                                 "type": tipe,
-                                "message": "Berhasil setelah jeda limit",
+                                "message": ok_msg,
                             }
                         )
                     except Exception as inner_exc:
@@ -622,21 +641,23 @@ class DesktopHybridEngine:
         selected_ids: list[int],
         auto_logout: bool,
         emit: Callable[[dict[str, Any]], None],
+        block_bots: bool = False,
     ) -> dict[str, Any]:
         with self._cleaning_lock:
             self._cancel_event.clear()
             if self._active_mode == "local":
                 return self._run_coro(
-                    self._local_clean_all(selected_ids, auto_logout, emit),
+                    self._local_clean_all(selected_ids, auto_logout, emit, block_bots=block_bots),
                     timeout=3600,
                 )
-            return self._cloud_clean_all(selected_ids, auto_logout, emit)
+            return self._cloud_clean_all(selected_ids, auto_logout, emit, block_bots=block_bots)
 
     def _cloud_clean_all(
         self,
         selected_ids: list[int],
         auto_logout: bool,
         emit: Callable[[dict[str, Any]], None],
+        block_bots: bool = False,
     ) -> dict[str, Any]:
         if not self._flow_token:
             raise ValueError("Sesi pembersihan tidak valid.")
@@ -664,6 +685,7 @@ class DesktopHybridEngine:
                         "target_ids": batch_ids,
                         "is_last_batch": is_last_batch,
                         "auto_logout": auto_logout,
+                        "block_bots": bool(block_bots),
                     },
                     timeout=90,
                 )

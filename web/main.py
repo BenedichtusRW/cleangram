@@ -71,6 +71,7 @@ class CleanBatchRequest(BaseModel):
     target_ids: list[int]
     is_last_batch: bool = True
     auto_logout: bool = True
+    block_bots: bool = False
 
 
 class LogoutRequest(BaseModel):
@@ -169,6 +170,7 @@ async def api_clean_batch(payload: CleanBatchRequest):
             target_ids=payload.target_ids,
             is_last_batch=payload.is_last_batch,
             auto_logout=payload.auto_logout,
+            block_bots=payload.block_bots,
         )
         ok_count = sum(1 for r in result.get("results", []) if r.get("status") == "ok")
         completed = bool(payload.is_last_batch and not result.get("floodwait_seconds"))

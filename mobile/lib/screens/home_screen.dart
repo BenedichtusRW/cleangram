@@ -62,6 +62,8 @@ class _HomeScreenState extends State<HomeScreen> {
   List<ProtectedItem> _protectedItems = [];
   Set<int> _selectedIds = {};
   bool _showProtectedTab = false;
+  String _categoryFilter = 'ALL';
+  bool _blockBots = false;
   bool _autoLogout = true;
 
   // Step 4 state
@@ -284,6 +286,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _protectedItems = res.protectedItems;
       _selectedIds = res.targets.map((e) => e.id).toSet();
       _showProtectedTab = false;
+      _categoryFilter = 'ALL';
+      _blockBots = false;
       _searchCtrl.clear();
       _errorMsg = null;
       _step = 3;
@@ -294,6 +298,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _confirmAndClean() async {
     final ids = _selectedIds.toList();
     if (ids.isEmpty || _flowToken == null) return;
+
+    final botNote = _blockBots
+        ? 'Bot yang tercentang juga akan diblokir permanen agar tidak mengirim spam lagi. Grup & Saluran tetap keluar bersih.'
+        : 'Kontak HP & grup yang dilindungi tetap 100% aman. Tidak ada pemblokiran akun.';
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -308,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'Yakin ingin KELUAR & HAPUS RIWAYAT ${ids.length} grup/saluran/bot terpilih?\n\nKontak HP & grup yang dilindungi tetap 100% aman. Tidak ada pemblokiran akun.',
+          'Yakin ingin KELUAR & HAPUS RIWAYAT ${ids.length} grup/saluran/bot terpilih?\n\n$botNote',
           style: const TextStyle(fontSize: 13, color: Colors.white70),
         ),
         actions: [
@@ -351,6 +359,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final total = queue.length;
     int processed = 0;
     int cursor = 0;
+    final bool blockBots = _blockBots;
 
     setState(() {
       _step = 4;
@@ -363,7 +372,10 @@ class _HomeScreenState extends State<HomeScreen> {
       _errorMsg = null;
     });
 
-    _appendLog('[MEMULAI] Memproses $total target secara aman...', kTgBlue);
+    _appendLog(
+      '[MEMULAI] Memproses $total target (${blockBots ? "dengan blokir Bot spam" : "tanpa blokir"})...',
+      kTgBlue,
+    );
 
     try {
       while (cursor < total) {
@@ -376,6 +388,7 @@ class _HomeScreenState extends State<HomeScreen> {
           targetIds: batchIds,
           isLastBatch: isLastBatch,
           autoLogout: _autoLogout,
+          blockBots: blockBots,
         );
         if (!mounted) return;
 
@@ -391,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
           });
           if (item.status == 'ok') {
             _appendLog(
-              '✓ [$processed/$total] Keluar & Hapus: ${item.name} (${item.type})',
+              '✓ [$processed/$total] ${item.name} (${item.type}) — ${item.message}',
               kEmerald,
             );
           } else {
@@ -966,7 +979,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _TrustChip(icon: Icons.verified_user_outlined, color: kEmerald, label: 'Kontak HP aman'),
             _TrustChip(icon: Icons.lock_outline, color: Colors.white54, label: 'Zero-storage'),
             _TrustChip(icon: Icons.logout, color: Colors.white54, label: 'Auto-logout'),
-            _TrustChip(icon: Icons.person_outline, color: Colors.white54, label: 'Tanpa blokir'),
+            _TrustChip(icon: Icons.person_outline, color: Colors.white54, label: 'Blokir Bot opsional'),
           ],
         ),
       ],
@@ -1121,14 +1134,63 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildStep3() {
+  List<DialogTarget> _filteredTargets() {
     final query = _searchCtrl.text.trim().toLowerCase();
-    final filteredTargets = _targets.where((t) {
+    return _targets.where((t) {
+      if (_categoryFilter != 'ALL' && t.type != _categoryFilter) return false;
       if (query.isEmpty) return true;
       return t.name.toLowerCase().contains(query) ||
           t.username.toLowerCase().contains(query) ||
           t.type.toLowerCase().contains(query);
     }).toList();
+  }
+
+  Widget _buildCategoryFilterBar() {
+    final Map<String, int> counts = {'ALL': _targets.length};
+    for (final t in _targets) {
+      counts[t.type] = (counts[t.type] ?? 0) + 1;
+    }
+    const order = [
+      ('ALL', 'Semua'),
+      ('Grup', 'Grup'),
+      ('Saluran', 'Saluran'),
+      ('Bot', 'Bot'),
+      ('Akun Terhapus', 'Akun Terhapus'),
+    ];
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final entry in order)
+            if (entry.$1 == 'ALL' || (counts[entry.$1] ?? 0) > 0) ...[
+              ChoiceChip(
+                label: Text('${entry.$2} (${counts[entry.$1] ?? 0})'),
+                selected: _categoryFilter == entry.$1,
+                onSelected: (_) => setState(() => _categoryFilter = entry.$1),
+                selectedColor: kTgBlue.withAlpha(45),
+                backgroundColor: kBgColor,
+                side: BorderSide(
+                  color: _categoryFilter == entry.$1
+                      ? kTgBlue.withAlpha(140)
+                      : kBorderColor,
+                ),
+                labelStyle: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: _categoryFilter == entry.$1
+                      ? const Color(0xFF38BDF8)
+                      : Colors.white60,
+                ),
+              ),
+              const SizedBox(width: 6),
+            ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep3() {
+    final filteredTargets = _filteredTargets();
 
     return _cardContainer(
       children: [
@@ -1212,6 +1274,8 @@ class _HomeScreenState extends State<HomeScreen> {
         const SizedBox(height: 10),
 
         if (!_showProtectedTab) ...[
+          _buildCategoryFilterBar(),
+          const SizedBox(height: 8),
           TextField(
             controller: _searchCtrl,
             onChanged: (_) => setState(() {}),
@@ -1223,12 +1287,14 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               TextButton(
                 onPressed: () => setState(() {
-                  _selectedIds = _targets.map((e) => e.id).toSet();
+                  _selectedIds.addAll(filteredTargets.map((e) => e.id));
                 }),
                 child: const Text('Pilih Semua', style: TextStyle(fontSize: 12)),
               ),
               TextButton(
-                onPressed: () => setState(() => _selectedIds.clear()),
+                onPressed: () => setState(() {
+                  _selectedIds.removeAll(filteredTargets.map((e) => e.id));
+                }),
                 child: const Text(
                   'Hapus Centang',
                   style: TextStyle(fontSize: 12, color: Colors.white54),
@@ -1377,6 +1443,25 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
 
         const SizedBox(height: 12),
+        CheckboxListTile(
+          value: _blockBots,
+          onChanged: (v) => setState(() => _blockBots = v ?? false),
+          activeColor: kDanger,
+          contentPadding: EdgeInsets.zero,
+          controlAffinity: ListTileControlAffinity.leading,
+          title: const Text(
+            'Sekalian Blokir Bot terpilih permanen',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          subtitle: const Text(
+            'Hanya memblokir tipe Bot; Grup & Saluran tetap keluar bersih.',
+            style: TextStyle(fontSize: 11, color: Colors.white54),
+          ),
+        ),
         CheckboxListTile(
           value: _autoLogout,
           onChanged: (v) => setState(() => _autoLogout = v ?? true),

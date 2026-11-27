@@ -141,6 +141,7 @@ class CleanGramApi {
     required List<int> targetIds,
     required bool isLastBatch,
     required bool autoLogout,
+    bool blockBots = false,
   }) async {
     final data = await _postJson(
       '/api/clean-batch',
@@ -149,6 +150,7 @@ class CleanGramApi {
         'target_ids': targetIds,
         'is_last_batch': isLastBatch,
         'auto_logout': autoLogout,
+        'block_bots': blockBots,
       },
       timeout: const Duration(seconds: 60),
     );

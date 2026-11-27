@@ -13,7 +13,10 @@ if str(WEB_DIR) not in sys.path:
     sys.path.insert(0, str(WEB_DIR))
 
 import main  # noqa: E402
+import cleaner_service  # noqa: E402
 import stats_service  # noqa: E402
+from telethon import functions as tl_functions  # noqa: E402
+from telethon.tl.types import InputPeerChannel, InputPeerUser  # noqa: E402
 
 
 class TestWebAnalyticsAndStats(unittest.TestCase):
@@ -23,7 +26,45 @@ class TestWebAnalyticsAndStats(unittest.TestCase):
         self.assertIn("window.va", html)
         self.assertIn('id="liveStatsCard"', html)
         self.assertIn('id="activityToast"', html)
+        self.assertIn('id="categoryFilterBar"', html)
+        self.assertIn('id="blockBotsCheck"', html)
         self.assertIn('property="og:image"', html)
+
+    def test_clean_single_peer_optional_block_bots_only_blocks_bots(self) -> None:
+        async def run_cases() -> None:
+            bot_peer = InputPeerUser(111, 222)
+            ch_peer = InputPeerChannel(333, 444)
+
+            fake_client = AsyncMock()
+            fake_client.return_value = None
+            fake_client.delete_dialog = AsyncMock()
+
+            blocked_bot = await cleaner_service._clean_single_peer(
+                fake_client, bot_peer, "us", tipe="Bot", block_bots=True
+            )
+            self.assertTrue(blocked_bot)
+            self.assertTrue(
+                any(
+                    isinstance(call.args[0], tl_functions.contacts.BlockRequest)
+                    for call in fake_client.call_args_list
+                    if call.args
+                )
+            )
+
+            fake_client.reset_mock()
+            blocked_ch = await cleaner_service._clean_single_peer(
+                fake_client, ch_peer, "ch", tipe="Saluran", block_bots=True
+            )
+            self.assertFalse(blocked_ch)
+            self.assertFalse(
+                any(
+                    isinstance(call.args[0], tl_functions.contacts.BlockRequest)
+                    for call in fake_client.call_args_list
+                    if call.args
+                )
+            )
+
+        asyncio.run(run_cases())
 
     def test_stats_unconfigured_graceful_fallback(self) -> None:
         env = {

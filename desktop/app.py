@@ -114,7 +114,9 @@ class DesktopApiBridge:
         except Exception as exc:
             return self._err(exc)
 
-    def start_cleaning(self, selected_ids: list[int], auto_logout: bool = True) -> dict[str, Any]:
+    def start_cleaning(
+        self, selected_ids: list[int], auto_logout: bool = True, block_bots: bool = False
+    ) -> dict[str, Any]:
         try:
             ids = [int(x) for x in (selected_ids or [])]
             if not ids:
@@ -122,7 +124,9 @@ class DesktopApiBridge:
 
             def worker() -> None:
                 try:
-                    summary = self.engine.run_cleaning(ids, bool(auto_logout), self._push_event)
+                    summary = self.engine.run_cleaning(
+                        ids, bool(auto_logout), self._push_event, block_bots=bool(block_bots)
+                    )
                     self._push_event({"event": "done", **summary})
                 except Exception as exc:
                     self._push_event({"event": "error", "message": str(exc)})

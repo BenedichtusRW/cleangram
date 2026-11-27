@@ -7,5 +7,6 @@ void main() {
     expect(find.text('Masuk ke CleanGram'), findsOneWidget);
     expect(find.text('ben_dev'), findsNothing); // RichText TextSpan sanity check
     expect(find.text('01 Login'), findsOneWidget);
+    expect(find.text('Blokir Bot opsional'), findsOneWidget);
   });
 }

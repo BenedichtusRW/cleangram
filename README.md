@@ -129,4 +129,20 @@ Buka aplikasi Telegram di HP Anda:
 
 ---
 
+## ☕ Dukung Pengembangan CleanGram
+
+CleanGram **100% gratis & open source** tanpa iklan. Jika aplikasi ini membantu membersihkan akun Telegram Anda, Anda dapat mendukung developer agar server web tetap aktif melalui:
+
+👉 **[Traktir Kopi via SociaBuzz (sociabuzz.com/benedichtus)](https://sociabuzz.com/benedichtus)**
+
+<details>
+<summary>📱 Tampilkan QR Code SociaBuzz (QRIS / e-Wallet)</summary>
+<br/>
+<p align="center">
+  <img src="web/static/sociabuzz-qr.png" alt="QR Code SociaBuzz CleanGram" width="200" />
+</p>
+</details>
+
+---
+
 <p align="center">Built by <a href="https://github.com/BenedichtusRW"><strong>ben_dev</strong></a></p>

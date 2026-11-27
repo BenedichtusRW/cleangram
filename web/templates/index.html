@@ -312,7 +312,7 @@
           <div class="flex items-center justify-between gap-2">
             <div>
               <h2 class="text-xs sm:text-sm font-semibold text-white">Gunakan di Perangkat Lain atau Offline</h2>
-              <p class="text-[11px] text-zinc-500">Pengguna iPhone, Mac, atau Android lama cukup pakai Website / Pasang Web.</p>
+              <p id="platformSubtitle" class="text-[11px] text-zinc-500">Pengguna iPhone, Mac, atau Android lama cukup pakai Website / Pasang Web.</p>
             </div>
             <a href="https://github.com/BenedichtusRW/cleangram/releases" target="_blank" rel="noopener noreferrer"
                class="text-[11px] text-[#24A1DE] hover:underline whitespace-nowrap shrink-0">
@@ -320,26 +320,34 @@
             </a>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2">
-            <a href="https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.exe" target="_blank" rel="noopener noreferrer"
-               class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group">
-              <i data-lucide="monitor" class="w-4 h-4 text-[#24A1DE] shrink-0"></i>
-              <div class="min-w-0">
-                <div class="text-xs font-medium text-zinc-100 group-hover:text-white truncate">Windows (.exe)</div>
-                <div class="text-[10.5px] text-zinc-500 truncate">Win 10/11 64-bit • Mode Cepat &amp; Lokal</div>
+          <div id="platformLinksGrid" class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-2">
+            <a id="platformWinLink" href="https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.exe" target="_blank" rel="noopener noreferrer"
+               onclick="return handlePlatformDownload(event, 'windows')"
+               class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <i data-lucide="monitor" class="w-4 h-4 text-[#24A1DE] shrink-0"></i>
+                <div class="min-w-0">
+                  <div class="text-xs font-medium text-zinc-100 group-hover:text-white truncate">Windows (.exe)</div>
+                  <div class="text-[10.5px] text-zinc-500 truncate">Win 10/11 64-bit • Mode Cepat &amp; Lokal</div>
+                </div>
               </div>
+              <span id="platformWinBadge" class="hidden text-[10px] font-medium px-2 py-0.5 rounded-full bg-[#24A1DE]/15 text-[#24A1DE] border border-[#24A1DE]/30 shrink-0 whitespace-nowrap">Cocok di device ini</span>
             </a>
 
-            <a href="https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.apk" target="_blank" rel="noopener noreferrer"
-               class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group">
-              <i data-lucide="smartphone" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-              <div class="min-w-0">
-                <div class="text-xs font-medium text-zinc-100 group-hover:text-white truncate">Android (.apk)</div>
-                <div class="text-[10.5px] text-zinc-500 truncate">Min. Android 7.0+ (64-bit)</div>
+            <a id="platformApkLink" href="https://github.com/BenedichtusRW/cleangram/releases/latest/download/CleanGram.apk" target="_blank" rel="noopener noreferrer"
+               onclick="return handlePlatformDownload(event, 'android')"
+               class="flex items-center justify-between gap-2.5 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group">
+              <div class="flex items-center gap-2.5 min-w-0">
+                <i data-lucide="smartphone" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                <div class="min-w-0">
+                  <div class="text-xs font-medium text-zinc-100 group-hover:text-white truncate">Android (.apk)</div>
+                  <div class="text-[10.5px] text-zinc-500 truncate">Min. Android 7.0+ (64-bit)</div>
+                </div>
               </div>
+              <span id="platformApkBadge" class="hidden text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">Cocok di device ini</span>
             </a>
 
-            <a href="https://github.com/BenedichtusRW/cleangram#readme" target="_blank" rel="noopener noreferrer"
+            <a id="platformCliLink" href="https://github.com/BenedichtusRW/cleangram#readme" target="_blank" rel="noopener noreferrer"
                class="flex items-center gap-2.5 p-2.5 rounded-xl bg-[#09090B] hover:bg-zinc-900 border border-zinc-800 hover:border-zinc-700 transition group">
               <i data-lucide="terminal" class="w-4 h-4 text-zinc-400 shrink-0"></i>
               <div class="min-w-0">
@@ -593,6 +601,33 @@
     <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0 animate-pulse"></span>
     <div class="text-[11px] text-zinc-200 leading-snug" id="activityToastText"></div>
     <button type="button" onclick="dismissActivityToast()" class="text-zinc-500 hover:text-white shrink-0 text-xs" title="Tutup">✕</button>
+  </div>
+
+  <!-- Cross-OS Download Confirmation Modal -->
+  <div id="crossOsModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm p-4" onclick="closeCrossOsModal(event)">
+    <div class="h-full w-full flex items-center justify-center">
+      <div class="w-full max-w-sm rounded-2xl bg-[#111114] border border-zinc-800 shadow-2xl p-5 space-y-4" onclick="event.stopPropagation()">
+        <div class="flex items-start gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0">
+            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+          </div>
+          <div class="space-y-1 min-w-0">
+            <h3 id="crossOsTitle" class="text-sm font-semibold text-white">Perangkat Berbeda Terdeteksi</h3>
+            <p id="crossOsBody" class="text-xs text-zinc-400 leading-relaxed"></p>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" onclick="closeCrossOsModal()"
+            class="px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-medium text-zinc-300 hover:text-white transition">
+            Batal
+          </button>
+          <a id="crossOsProceedLink" href="#" target="_blank" rel="noopener noreferrer" onclick="closeCrossOsModal()"
+            class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#24A1DE] hover:bg-[#1D8FC7] text-xs font-semibold text-white transition">
+            <span>Tetap Download ↗</span>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -1285,6 +1320,79 @@
       } catch (_) {}
     }
 
+    function detectClientPlatform() {
+      const ua = navigator.userAgent || '';
+      const pf = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || '';
+      if (/android/i.test(ua)) return 'android';
+      if (/iphone|ipad|ipod/i.test(ua) || (/mac/i.test(pf) && (navigator.maxTouchPoints || 0) > 1)) return 'ios';
+      if (/win/i.test(pf) || /windows/i.test(ua)) return 'windows';
+      if (/mac/i.test(pf) || /macintosh|mac os/i.test(ua)) return 'mac';
+      return 'linux';
+    }
+
+    function applyPlatformSuggestion() {
+      const os = detectClientPlatform();
+      const grid = document.getElementById('platformLinksGrid');
+      const winCard = document.getElementById('platformWinLink');
+      const winBadge = document.getElementById('platformWinBadge');
+      const apkCard = document.getElementById('platformApkLink');
+      const apkBadge = document.getElementById('platformApkBadge');
+      const subtitle = document.getElementById('platformSubtitle');
+
+      if (os === 'windows' && winCard && grid) {
+        grid.prepend(winCard);
+        winCard.classList.remove('border-zinc-800');
+        winCard.classList.add('border-[#24A1DE]/50', 'bg-[#24A1DE]/[0.06]');
+        if (winBadge) winBadge.classList.remove('hidden');
+      } else if (os === 'android' && apkCard && grid) {
+        grid.prepend(apkCard);
+        apkCard.classList.remove('border-zinc-800');
+        apkCard.classList.add('border-emerald-500/45', 'bg-emerald-500/[0.06]');
+        if (apkBadge) apkBadge.classList.remove('hidden');
+      } else if (subtitle && (os === 'ios' || os === 'mac' || os === 'linux')) {
+        subtitle.textContent = 'Perangkat Apple/Linux disarankan langsung pakai Website atau "+ Pasang Web".';
+      }
+    }
+
+    function closeCrossOsModal(ev) {
+      if (ev && ev.target !== ev.currentTarget) return;
+      const modal = document.getElementById('crossOsModal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function handlePlatformDownload(ev, targetOs) {
+      const currentOs = detectClientPlatform();
+      if (currentOs === targetOs) return true;
+
+      ev.preventDefault();
+      const linkEl = ev.currentTarget;
+      const modal = document.getElementById('crossOsModal');
+      const titleEl = document.getElementById('crossOsTitle');
+      const bodyEl = document.getElementById('crossOsBody');
+      const proceedEl = document.getElementById('crossOsProceedLink');
+      if (!modal || !titleEl || !bodyEl || !proceedEl) return true;
+
+      proceedEl.href = linkEl.href;
+      if (targetOs === 'windows') {
+        titleEl.textContent = 'File Khusus Windows PC (.exe)';
+        bodyEl.textContent = currentOs === 'android'
+          ? 'CleanGram.exe hanya berjalan di laptop/PC Windows 10/11 (tidak bisa di-install di HP Android). Tetap download (~19.8 MB) untuk dipindah ke PC?'
+          : 'CleanGram.exe hanya berjalan di Windows 10/11 (64-bit). Di perangkat ini Anda cukup pakai Website CleanGram, atau tetap download untuk dipindah ke PC Windows?';
+      } else {
+        titleEl.textContent = 'File Khusus HP Android (.apk)';
+        bodyEl.textContent = currentOs === 'ios'
+          ? 'CleanGram.apk hanya untuk HP Android (iPhone/iPad tidak mendukung file .apk). Di iPhone cukup pakai Website / "+ Pasang Web". Tetap download (~16.5 MB)?'
+          : 'CleanGram.apk adalah aplikasi khusus HP Android 7.0+ (tidak berjalan langsung di komputer ini). Tetap download (~16.5 MB) untuk dikirim ke HP Android?';
+      }
+      modal.classList.remove('hidden');
+      return false;
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeCrossOsModal();
+    });
+
+    applyPlatformSuggestion();
     loadLiveStats();
   </script>
 </body>

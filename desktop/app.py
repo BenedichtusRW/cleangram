@@ -72,7 +72,7 @@ class DesktopApiBridge:
             else:
                 clear_saved_config()
             return self._ok(
-                {"use_local_mode": bool(use_local), "api_id": api_id.strip(), "api_hash": api_hash.strip()}
+                {"use_local_mode": use_local, "api_id": api_id.strip(), "api_hash": api_hash.strip()}
             )
         except Exception as exc:
             return self._err(exc)
@@ -86,7 +86,7 @@ class DesktopApiBridge:
 
     def start_qr(self, use_local: bool = False, api_id: str = "", api_hash: str = "") -> dict[str, Any]:
         try:
-            return self._ok(self.engine.start_qr(use_local=bool(use_local), api_id=api_id, api_hash=api_hash))
+            return self._ok(self.engine.start_qr(use_local=use_local, api_id=api_id, api_hash=api_hash))
         except Exception as exc:
             return self._err(exc)
 
@@ -101,7 +101,7 @@ class DesktopApiBridge:
     ) -> dict[str, Any]:
         try:
             return self._ok(
-                self.engine.send_otp(phone=phone, use_local=bool(use_local), api_id=api_id, api_hash=api_hash)
+                self.engine.send_otp(phone=phone, use_local=use_local, api_id=api_id, api_hash=api_hash)
             )
         except Exception as exc:
             return self._err(exc)
@@ -118,14 +118,14 @@ class DesktopApiBridge:
         self, selected_ids: list[int], auto_logout: bool = True, block_bots: bool = False
     ) -> dict[str, Any]:
         try:
-            ids = [int(x) for x in (selected_ids or [])]
+            ids = list(selected_ids or [])
             if not ids:
                 raise ValueError("Pilih minimal 1 target untuk dibersihkan.")
 
             def worker() -> None:
                 try:
                     summary = self.engine.run_cleaning(
-                        ids, bool(auto_logout), self._push_event, block_bots=bool(block_bots)
+                        ids, auto_logout, self._push_event, block_bots=block_bots
                     )
                     self._push_event({"event": "done", **summary})
                 except Exception as exc:
@@ -173,6 +173,8 @@ def main() -> None:
         background_color="#09090B",
         text_select=True,
     )
+    if window is None:
+        raise RuntimeError("Gagal membuat jendela CleanGram Desktop.")
     bridge.attach_window(window)
 
     def on_closing() -> None:

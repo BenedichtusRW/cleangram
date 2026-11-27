@@ -169,12 +169,12 @@ async def record_cleanup(ok_count: int, completed: bool = False) -> None:
         return
     commands: list[list[Any]] = []
     if ok_count > 0:
-        commands.append(["INCRBY", "cleangram:cleaned_items", int(ok_count)])
+        commands.append(["INCRBY", "cleangram:cleaned_items", ok_count])
         commands.append(
             [
                 "SET",
                 "cleangram:last_activity",
-                json.dumps({"count": int(ok_count), "ts": int(time.time())}),
+                json.dumps({"count": ok_count, "ts": int(time.time())}),
             ]
         )
     if completed:

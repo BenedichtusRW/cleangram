@@ -6,6 +6,7 @@ dan mendukung Mode Lanjutan 100% lokal (Telethon direct PC <-> Telegram) jika di
 
 import asyncio
 import base64
+import inspect
 import io
 import json
 import os
@@ -84,7 +85,7 @@ def save_saved_config(api_id: str, api_hash: str, use_local_mode: bool) -> None:
             {
                 "api_id": api_id.strip(),
                 "api_hash": api_hash.strip(),
-                "use_local_mode": bool(use_local_mode),
+                "use_local_mode": use_local_mode,
             },
             indent=2,
         ),
@@ -109,6 +110,16 @@ def _extract_http_error(resp: requests.Response, fallback: str) -> str:
     except Exception:
         pass
     return f"{fallback} (HTTP {resp.status_code})"
+
+
+async def _safe_disconnect(client: TelegramClient) -> None:
+    """Memutus koneksi client Telethon secara aman untuk tipe sync/async."""
+    try:
+        res: Any = client.disconnect()
+        if inspect.isawaitable(res):
+            await res
+    except Exception:
+        pass
 
 
 class DesktopHybridEngine:
@@ -156,8 +167,8 @@ class DesktopHybridEngine:
         self._cancel_event.set()
 
     def _validate_local_creds(self, api_id_raw: str, api_hash_raw: str) -> tuple[int, str]:
-        raw_id = str(api_id_raw or "").strip()
-        raw_hash = str(api_hash_raw or "").strip()
+        raw_id = (api_id_raw or "").strip()
+        raw_hash = (api_hash_raw or "").strip()
         if not raw_id.isdigit():
             raise ValueError("Mode Lokal aktif, tapi API ID harus berupa angka dari my.telegram.org.")
         if len(raw_hash) < 10:
@@ -205,10 +216,7 @@ class DesktopHybridEngine:
                     logged_out = True
             except Exception:
                 pass
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
+        await _safe_disconnect(client)
         return logged_out
 
     async def _local_start_qr(self, api_id: int, api_hash: str) -> str:
@@ -377,7 +385,11 @@ class DesktopHybridEngine:
                 pass
         elif dialog.is_group:
             try:
-                await self._client(functions.messages.DeleteChatUserRequest(chat_id=dialog.id, user_id="me"))
+                await self._client(
+                    functions.messages.DeleteChatUserRequest(
+                        chat_id=dialog.id, user_id=tl_types.InputUserSelf()
+                    )
+                )
             except Exception:
                 pass
 
@@ -685,7 +697,7 @@ class DesktopHybridEngine:
                         "target_ids": batch_ids,
                         "is_last_batch": is_last_batch,
                         "auto_logout": auto_logout,
-                        "block_bots": bool(block_bots),
+                        "block_bots": block_bots,
                     },
                     timeout=90,
                 )
@@ -733,7 +745,7 @@ class DesktopHybridEngine:
             if cancelled and auto_logout and self._flow_token:
                 logged_out = self.logout()
             elif not cancelled:
-                logged_out = bool(auto_logout)
+                logged_out = auto_logout
                 self._flow_token = None
 
         return {

@@ -9,13 +9,14 @@ import asyncio
 import base64
 import hashlib
 import hmac
+import inspect
 import json
 import os
 import secrets
 import time
 import zlib
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import pyaes
 from dotenv import load_dotenv
@@ -59,7 +60,7 @@ def resolve_credentials(
 ) -> tuple[int, str]:
     """Menentukan API ID & API Hash dari input custom, env var, atau config lokal."""
     if custom_api_id and custom_api_hash and len(custom_api_hash.strip()) >= 10:
-        return int(custom_api_id), custom_api_hash.strip()
+        return custom_api_id, custom_api_hash.strip()
 
     env_id = os.getenv("TELEGRAM_API_ID") or os.getenv("API_ID")
     env_hash = os.getenv("TELEGRAM_API_HASH") or os.getenv("API_HASH")
@@ -109,7 +110,7 @@ def encrypt_state(payload: dict[str, Any]) -> str:
     raw = zlib.compress(json.dumps(payload, separators=(",", ":")).encode("utf-8"), level=6)
     nonce = secrets.token_bytes(16)
     counter = pyaes.Counter(int.from_bytes(nonce, "big"))
-    ciphertext = pyaes.AESModeOfOperationCTR(enc_key, counter=counter).encrypt(raw)
+    ciphertext = cast(bytes, pyaes.AESModeOfOperationCTR(enc_key, counter=counter).encrypt(raw))
 
     ts_bytes = int(time.time()).to_bytes(8, "big")
     body = ts_bytes + nonce + ciphertext
@@ -146,7 +147,7 @@ def decrypt_state(token: str, ttl: int = TOKEN_TTL_SECONDS) -> dict[str, Any]:
     nonce = body[8:24]
     ciphertext = body[24:]
     counter = pyaes.Counter(int.from_bytes(nonce, "big"))
-    compressed = pyaes.AESModeOfOperationCTR(enc_key, counter=counter).decrypt(ciphertext)
+    compressed = cast(bytes, pyaes.AESModeOfOperationCTR(enc_key, counter=counter).decrypt(ciphertext))
 
     try:
         return json.loads(zlib.decompress(compressed).decode("utf-8"))
@@ -169,16 +170,34 @@ def _build_client(session_str: str, api_id: int, api_hash: str) -> TelegramClien
     )
 
 
+def _save_session(client: TelegramClient) -> str:
+    """Mengambil string sesi Telethon secara aman."""
+    sess = client.session
+    if sess is None:
+        return ""
+    return sess.save()
+
+
+async def _safe_disconnect(client: TelegramClient) -> None:
+    """Memutus koneksi Telethon secara aman untuk tipe sync/async."""
+    try:
+        res: Any = client.disconnect()
+        if inspect.isawaitable(res):
+            await res
+    except Exception:
+        pass
+
+
 def _serialize_peer(dialog: Any, tipe: str) -> Optional[dict[str, Any]]:
     """Menyimpan informasi InputPeer ringan agar cleanup batch berjalan tanpa re-scan."""
     ie = dialog.input_entity
     name = (dialog.name or "Akun Terhapus").strip()[:45]
     if isinstance(ie, InputPeerChannel):
-        return {"k": "ch", "i": int(ie.channel_id), "h": int(ie.access_hash), "t": tipe, "n": name}
+        return {"k": "ch", "i": ie.channel_id, "h": ie.access_hash, "t": tipe, "n": name}
     if isinstance(ie, InputPeerChat):
-        return {"k": "gp", "i": int(ie.chat_id), "t": tipe, "n": name}
+        return {"k": "gp", "i": ie.chat_id, "t": tipe, "n": name}
     if isinstance(ie, InputPeerUser):
-        return {"k": "us", "i": int(ie.user_id), "h": int(ie.access_hash), "t": tipe, "n": name}
+        return {"k": "us", "i": ie.user_id, "h": ie.access_hash, "t": tipe, "n": name}
     return None
 
 
@@ -218,7 +237,7 @@ async def start_login(
     try:
         await client.connect()
         sent = await client.send_code_request(normalized)
-        session_str = client.session.save()
+        session_str = _save_session(client)
     except PhoneNumberInvalidError as exc:
         raise ValueError("Nomor HP Telegram tidak terdaftar atau format salah.") from exc
     except FloodWaitError as exc:
@@ -228,10 +247,7 @@ async def start_login(
     except Exception as exc:
         raise ValueError(f"Gagal mengirim OTP Telegram: {exc}") from exc
     finally:
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
+        await _safe_disconnect(client)
 
     code_type = type(sent.type).__name__
     if "App" in code_type:
@@ -278,7 +294,7 @@ async def _authenticate_client(
                 )
             except SessionPasswordNeededError:
                 state["2fa"] = True
-                state["s"] = client.session.save()
+                state["s"] = _save_session(client)
                 if password:
                     await client.sign_in(password=password)
                 else:
@@ -286,7 +302,7 @@ async def _authenticate_client(
 
         state["auth"] = True
         state["2fa"] = False
-        state["s"] = client.session.save()
+        state["s"] = _save_session(client)
     except Require2FAError:
         raise
     except PhoneCodeInvalidError as exc:
@@ -378,7 +394,7 @@ async def _scan_authorized_client(
     dialogs = await client.get_dialogs()
     protected, targets, peers = classify_dialogs(dialogs, whitelist_raw)
 
-    state["s"] = client.session.save()
+    state["s"] = _save_session(client)
     state["peers"] = peers
 
     return {
@@ -409,16 +425,13 @@ async def qr_start(
     try:
         await client.connect()
         resp = await client(functions.auth.ExportLoginTokenRequest(api_id, api_hash, []))
-        session_str = client.session.save()
+        session_str = _save_session(client)
     except FloodWaitError as exc:
         raise ValueError(f"Terlalu banyak permintaan QR. Tunggu {exc.seconds} detik.") from exc
     except Exception as exc:
         raise ValueError(f"Gagal membuat QR Code Telegram: {exc}") from exc
     finally:
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
+        await _safe_disconnect(client)
 
     if not hasattr(resp, "token"):
         raise ValueError("Respon QR Telegram tidak terduga. Silakan coba lagi.")
@@ -455,7 +468,7 @@ async def qr_check(flow_token: str, whitelist_raw: str = "") -> dict[str, Any]:
                 resp = await client(functions.auth.ImportLoginTokenRequest(resp.token))
         except SessionPasswordNeededError:
             state["2fa"] = True
-            state["s"] = client.session.save()
+            state["s"] = _save_session(client)
             raise Require2FAError(encrypt_state(state))
 
         if isinstance(resp, tl_types.auth.LoginTokenSuccess):
@@ -467,7 +480,7 @@ async def qr_check(flow_token: str, whitelist_raw: str = "") -> dict[str, Any]:
             return await _scan_authorized_client(client, state, whitelist_raw=whitelist_raw)
 
         if hasattr(resp, "token"):
-            state["s"] = client.session.save()
+            state["s"] = _save_session(client)
             return {
                 "status": "pending",
                 "flow_token": encrypt_state(state),
@@ -483,10 +496,7 @@ async def qr_check(flow_token: str, whitelist_raw: str = "") -> dict[str, Any]:
             raise ValueError("QR Code sudah kedaluwarsa. Klik muat ulang QR.") from exc
         raise ValueError(f"Gagal memeriksa status QR: {exc}") from exc
     finally:
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
+        await _safe_disconnect(client)
 
 
 async def verify_and_scan(
@@ -506,10 +516,7 @@ async def verify_and_scan(
 
         return await _scan_authorized_client(client, state, whitelist_raw=whitelist_raw)
     finally:
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
+        await _safe_disconnect(client)
 
 
 async def _clean_single_peer(
@@ -536,7 +543,7 @@ async def _clean_single_peer(
             pass
     elif kind == "gp":
         try:
-            await client(functions.messages.DeleteChatUserRequest(chat_id=peer.chat_id, user_id="me"))
+            await client(functions.messages.DeleteChatUserRequest(chat_id=peer.chat_id, user_id=tl_types.InputUserSelf()))
         except Exception:
             pass
 
@@ -641,10 +648,7 @@ async def clean_batch(
                 pass
 
     finally:
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
+        await _safe_disconnect(client)
 
     return {
         "results": results,
@@ -673,7 +677,4 @@ async def logout_flow(flow_token: str) -> bool:
     except Exception:
         return False
     finally:
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
+        await _safe_disconnect(client)

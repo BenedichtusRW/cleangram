@@ -173,7 +173,7 @@ async def api_clean_batch(payload: CleanBatchRequest):
             block_bots=payload.block_bots,
         )
         ok_count = sum(1 for r in result.get("results", []) if r.get("status") == "ok")
-        completed = bool(payload.is_last_batch and not result.get("floodwait_seconds"))
+        completed = payload.is_last_batch and not result.get("floodwait_seconds")
         await record_cleanup(ok_count=ok_count, completed=completed)
         return JSONResponse(result)
     except ValueError as exc:
